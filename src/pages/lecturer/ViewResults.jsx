@@ -5,7 +5,7 @@ import { coursesAPI } from '../../api/courses';
 import { academicsAPI } from '../../api/academics';
 import LoadingSpinner from '../../components/common/LoadingSpinner';
 import Alert from '../../components/common/Alert';
-import { FiEye, FiChevronLeft, FiChevronRight, FiRefreshCw } from 'react-icons/fi';
+import { FiEye, FiChevronLeft, FiChevronRight, FiRefreshCw, FiFileText, FiCheckCircle, FiClock } from 'react-icons/fi';
 
 const ViewResults = () => {
   const [searchParams] = useSearchParams();
@@ -17,7 +17,6 @@ const ViewResults = () => {
   const [selectedSemester, setSelectedSemester] = useState('');
   const [message, setMessage] = useState(null);
   
-  // Pagination states
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [totalCount, setTotalCount] = useState(0);
@@ -72,7 +71,6 @@ const ViewResults = () => {
       
       setResults(resultsData);
       setTotalCount(total);
-      // Calculate total pages: ceil(total / itemsPerPage) or at least 1
       const pages = Math.max(1, Math.ceil(total / itemsPerPage));
       setTotalPages(pages);
       
@@ -104,14 +102,14 @@ const ViewResults = () => {
 
   const getGradeColor = (grade) => {
     const colors = {
-      'A': 'bg-green-100 text-green-800',
-      'B': 'bg-blue-100 text-blue-800',
-      'C': 'bg-yellow-100 text-yellow-800',
-      'D': 'bg-orange-100 text-orange-800',
-      'E': 'bg-red-100 text-red-800',
-      'F': 'bg-gray-100 text-gray-800',
+      'A': 'bg-green-100 text-green-700',
+      'B': 'bg-blue-100 text-blue-700',
+      'C': 'bg-yellow-100 text-yellow-700',
+      'D': 'bg-orange-100 text-orange-700',
+      'E': 'bg-red-100 text-red-700',
+      'F': 'bg-gray-100 text-gray-700',
     };
-    return colors[grade] || 'bg-gray-100 text-gray-800';
+    return colors[grade] || 'bg-gray-100 text-gray-700';
   };
 
   const getPageNumbers = () => {
@@ -135,21 +133,19 @@ const ViewResults = () => {
   const publishedCount = results.filter(r => r.is_published).length;
   const draftCount = results.filter(r => !r.is_published).length;
 
-  // Debug log to see if totalPages is correct
-  console.log('Total Pages:', totalPages, 'Total Count:', totalCount, 'Current Page:', currentPage);
-
   return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
+    <div className="space-y-3 sm:space-y-6 px-2 sm:px-0">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2">
         <div>
-          <h1 className="text-2xl font-bold text-gray-800">View Results</h1>
-          <p className="text-gray-500">View and manage student results for your courses</p>
+          <h1 className="text-base sm:text-2xl font-bold text-gray-800">View Results</h1>
+          <p className="text-[10px] sm:text-sm text-gray-500">View and manage student results for your courses</p>
         </div>
         <button
           onClick={() => fetchResults()}
-          className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 flex items-center space-x-2"
+          className="inline-flex items-center justify-center space-x-1.5 px-3 py-1.5 sm:px-4 sm:py-2 border border-gray-200 hover:border-green-500 text-gray-600 hover:text-green-600 text-[10px] sm:text-sm font-medium rounded-lg transition w-full sm:w-auto"
         >
-          <FiRefreshCw size={16} />
+          <FiRefreshCw size={12} className="sm:size-4" />
           <span>Refresh</span>
         </button>
       </div>
@@ -158,32 +154,37 @@ const ViewResults = () => {
         <Alert type={message.type} message={message.text} onClose={() => setMessage(null)} />
       )}
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div className="card bg-blue-50">
-          <p className="text-sm text-blue-600">Total Results</p>
-          <p className="text-2xl font-bold text-blue-700">{totalCount.toLocaleString()}</p>
+      {/* Stats Cards */}
+      <div className="grid grid-cols-3 gap-2 sm:gap-4">
+        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-3 sm:p-4 text-center">
+          <FiFileText className="mx-auto text-blue-500 text-sm sm:text-xl mb-1" />
+          <p className="text-[8px] sm:text-xs text-gray-500">Total</p>
+          <p className="text-sm sm:text-2xl font-bold text-gray-800">{totalCount.toLocaleString()}</p>
         </div>
-        <div className="card bg-green-50">
-          <p className="text-sm text-green-600">Published</p>
-          <p className="text-2xl font-bold text-green-700">{publishedCount}</p>
+        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-3 sm:p-4 text-center">
+          <FiCheckCircle className="mx-auto text-green-500 text-sm sm:text-xl mb-1" />
+          <p className="text-[8px] sm:text-xs text-gray-500">Published</p>
+          <p className="text-sm sm:text-2xl font-bold text-green-600">{publishedCount}</p>
         </div>
-        <div className="card bg-purple-50">
-          <p className="text-sm text-purple-600">Draft</p>
-          <p className="text-2xl font-bold text-purple-700">{draftCount}</p>
+        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-3 sm:p-4 text-center">
+          <FiClock className="mx-auto text-yellow-500 text-sm sm:text-xl mb-1" />
+          <p className="text-[8px] sm:text-xs text-gray-500">Draft</p>
+          <p className="text-sm sm:text-2xl font-bold text-yellow-600">{draftCount}</p>
         </div>
       </div>
 
-      <div className="card">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      {/* Filters */}
+      <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-3 sm:p-5">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Filter by Course</label>
+            <label className="block text-[10px] sm:text-sm font-medium text-gray-700 mb-1">Filter by Course</label>
             <select
               value={selectedCourse}
               onChange={(e) => {
                 setSelectedCourse(e.target.value);
                 setCurrentPage(1);
               }}
-              className="input-field"
+              className="w-full px-3 py-1.5 sm:py-2 border border-gray-200 rounded-lg text-xs sm:text-sm focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none bg-white"
             >
               <option value="">All Courses ({courses.length})</option>
               {courses.map(course => (
@@ -194,14 +195,14 @@ const ViewResults = () => {
             </select>
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Filter by Semester</label>
+            <label className="block text-[10px] sm:text-sm font-medium text-gray-700 mb-1">Filter by Semester</label>
             <select
               value={selectedSemester}
               onChange={(e) => {
                 setSelectedSemester(e.target.value);
                 setCurrentPage(1);
               }}
-              className="input-field"
+              className="w-full px-3 py-1.5 sm:py-2 border border-gray-200 rounded-lg text-xs sm:text-sm focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none bg-white"
             >
               <option value="">All Semesters</option>
               {semesters.map(sem => (
@@ -214,62 +215,64 @@ const ViewResults = () => {
         </div>
       </div>
 
-      <div className="card">
-        <div className="flex justify-between items-center mb-4">
-          <h2 className="text-lg font-semibold text-gray-800">
+      {/* Results Section */}
+      <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-3 sm:p-5">
+        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2 mb-3 sm:mb-4">
+          <h2 className="text-xs sm:text-lg font-semibold text-gray-800">
             Results {selectedCourse && courses.find(c => c.id === parseInt(selectedCourse))?.code 
               ? `for ${courses.find(c => c.id === parseInt(selectedCourse)).code}` 
               : '(All Courses)'}
           </h2>
-          <div className="text-sm text-gray-500">
-            Page {currentPage} of {totalPages} | Total: {totalCount.toLocaleString()} results
+          <div className="text-[10px] sm:text-sm text-gray-500">
+            Page {currentPage} of {totalPages} • {totalCount.toLocaleString()} results
           </div>
         </div>
         
         {results.length === 0 ? (
-          <div className="text-center py-8 text-gray-500">
-            <FiEye className="mx-auto text-4xl mb-2 text-gray-300" />
-            <p>No results found</p>
+          <div className="text-center py-6 sm:py-8 text-gray-400">
+            <FiEye className="mx-auto text-2xl sm:text-4xl mb-2 opacity-30" />
+            <p className="text-sm">No results found</p>
           </div>
         ) : (
           <>
-            <div className="overflow-x-auto">
+            {/* ─── DESKTOP TABLE ──────────────────────────────────────────────── */}
+            <div className="hidden sm:block overflow-x-auto">
               <table className="w-full">
                 <thead className="bg-gray-50">
                   <tr>
-                    <th className="px-4 py-3 text-left text-sm font-semibold text-gray-600">#</th>
-                    <th className="px-4 py-3 text-left text-sm font-semibold text-gray-600">Matric No</th>
-                    <th className="px-4 py-3 text-left text-sm font-semibold text-gray-600">Student Name</th>
-                    <th className="px-4 py-3 text-left text-sm font-semibold text-gray-600">Course</th>
-                    <th className="px-4 py-3 text-center text-sm font-semibold text-gray-600">CA</th>
-                    <th className="px-4 py-3 text-center text-sm font-semibold text-gray-600">Exam</th>
-                    <th className="px-4 py-3 text-center text-sm font-semibold text-gray-600">Total</th>
-                    <th className="px-4 py-3 text-center text-sm font-semibold text-gray-600">Grade</th>
-                    <th className="px-4 py-3 text-center text-sm font-semibold text-gray-600">Status</th>
+                    <th className="px-3 py-2 text-left text-[10px] font-semibold text-gray-500 uppercase">#</th>
+                    <th className="px-3 py-2 text-left text-[10px] font-semibold text-gray-500 uppercase">Matric</th>
+                    <th className="px-3 py-2 text-left text-[10px] font-semibold text-gray-500 uppercase">Student</th>
+                    <th className="px-3 py-2 text-left text-[10px] font-semibold text-gray-500 uppercase">Course</th>
+                    <th className="px-3 py-2 text-center text-[10px] font-semibold text-gray-500 uppercase">CA</th>
+                    <th className="px-3 py-2 text-center text-[10px] font-semibold text-gray-500 uppercase">Exam</th>
+                    <th className="px-3 py-2 text-center text-[10px] font-semibold text-gray-500 uppercase">Total</th>
+                    <th className="px-3 py-2 text-center text-[10px] font-semibold text-gray-500 uppercase">Grade</th>
+                    <th className="px-3 py-2 text-center text-[10px] font-semibold text-gray-500 uppercase">Status</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-gray-200">
+                <tbody className="divide-y divide-gray-100">
                   {results.map((result, index) => (
-                    <tr key={result.id} className="hover:bg-gray-50">
-                      <td className="px-4 py-3 text-sm text-gray-600">
+                    <tr key={result.id} className="hover:bg-gray-50 transition">
+                      <td className="px-3 py-2 text-sm text-gray-500">
                         {(currentPage - 1) * itemsPerPage + index + 1}
                       </td>
-                      <td className="px-4 py-3 text-sm font-mono">{result.student_matric}</td>
-                      <td className="px-4 py-3 text-sm">{result.student_name}</td>
-                      <td className="px-4 py-3 text-sm">{result.course_details?.code}</td>
-                      <td className="px-4 py-3 text-sm text-center">{result.ca_score}</td>
-                      <td className="px-4 py-3 text-sm text-center">{result.exam_score}</td>
-                      <td className="px-4 py-3 text-sm text-center font-medium">{result.total_score}</td>
-                      <td className="px-4 py-3 text-center">
-                        <span className={`inline-block px-2 py-1 rounded text-xs font-semibold ${getGradeColor(result.grade)}`}>
+                      <td className="px-3 py-2 text-sm font-mono">{result.student_matric}</td>
+                      <td className="px-3 py-2 text-sm">{result.student_name}</td>
+                      <td className="px-3 py-2 text-sm">{result.course_details?.code}</td>
+                      <td className="px-3 py-2 text-sm text-center">{result.ca_score}</td>
+                      <td className="px-3 py-2 text-sm text-center">{result.exam_score}</td>
+                      <td className="px-3 py-2 text-sm text-center font-medium">{result.total_score}</td>
+                      <td className="px-3 py-2 text-center">
+                        <span className={`inline-block px-2 py-0.5 rounded-full text-[10px] font-medium ${getGradeColor(result.grade)}`}>
                           {result.grade}
                         </span>
                       </td>
-                      <td className="px-4 py-3 text-center">
+                      <td className="px-3 py-2 text-center">
                         {result.is_published ? (
-                          <span className="text-green-600 text-xs">Published</span>
+                          <span className="text-[10px] text-green-600">Published</span>
                         ) : (
-                          <span className="text-yellow-600 text-xs">Draft</span>
+                          <span className="text-[10px] text-yellow-600">Draft</span>
                         )}
                       </td>
                     </tr>
@@ -278,55 +281,58 @@ const ViewResults = () => {
               </table>
             </div>
 
-            {/* Pagination Controls - Always show if totalPages > 1 */}
-            {totalPages > 1 && (
-              <div className="flex justify-between items-center mt-4 pt-4 border-t">
-                <div className="text-sm text-gray-500">
-                  Showing {results.length} of {totalCount.toLocaleString()} results
+            {/* ─── MOBILE CARD VIEW ───────────────────────────────────────────── */}
+            <div className="sm:hidden space-y-2">
+              {results.map((result, index) => (
+                <div key={result.id} className="bg-gray-50 rounded-lg p-2.5">
+                  <div className="flex items-start justify-between">
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center space-x-1.5">
+                        <span className="text-[8px] text-gray-400">#{result.student_matric}</span>
+                        <span className="text-[8px] text-gray-300">•</span>
+                        <span className="text-[8px] font-medium text-gray-700">{result.course_details?.code}</span>
+                      </div>
+                      <p className="text-[9px] text-gray-600 truncate">{result.student_name}</p>
+                      <div className="flex items-center space-x-2 mt-0.5">
+                        <span className="text-[8px] text-gray-500">CA: {result.ca_score}</span>
+                        <span className="text-[8px] text-gray-500">Exam: {result.exam_score}</span>
+                        <span className="text-[8px] font-medium text-gray-700">Total: {result.total_score}</span>
+                        <span className={`inline-block px-1.5 py-0.5 rounded text-[8px] font-medium ${getGradeColor(result.grade)}`}>
+                          {result.grade}
+                        </span>
+                      </div>
+                    </div>
+                    <span className={`text-[8px] ${result.is_published ? 'text-green-600' : 'text-yellow-600'} flex-shrink-0 ml-2`}>
+                      {result.is_published ? 'Published' : 'Draft'}
+                    </span>
+                  </div>
                 </div>
-                <div className="flex items-center space-x-2">
+              ))}
+            </div>
+
+            {/* Pagination */}
+            {totalPages > 1 && (
+              <div className="flex flex-col sm:flex-row justify-between items-center gap-2 mt-3 pt-3 border-t border-gray-100">
+                <div className="text-[10px] sm:text-sm text-gray-500">
+                  Showing {results.length} of {totalCount.toLocaleString()}
+                </div>
+                <div className="flex items-center space-x-1 sm:space-x-2">
                   <button
                     onClick={() => goToPage(1)}
                     disabled={currentPage === 1}
-                    className="px-3 py-1 border rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="p-1.5 sm:p-2 text-gray-400 hover:text-gray-600 disabled:opacity-50 disabled:cursor-not-allowed transition"
                   >
-                    First
+                    <FiChevronLeft size={12} className="sm:size-4" />
                   </button>
-                  <button
-                    onClick={prevPage}
-                    disabled={currentPage === 1}
-                    className="px-3 py-1 border rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    <FiChevronLeft />
-                  </button>
-                  
-                  {getPageNumbers().map(page => (
-                    <button
-                      key={page}
-                      onClick={() => goToPage(page)}
-                      className={`px-3 py-1 border rounded-lg transition-colors ${
-                        currentPage === page
-                          ? 'bg-primary-600 text-white border-primary-600'
-                          : 'hover:bg-gray-50'
-                      }`}
-                    >
-                      {page}
-                    </button>
-                  ))}
-                  
-                  <button
-                    onClick={nextPage}
-                    disabled={currentPage === totalPages}
-                    className="px-3 py-1 border rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    <FiChevronRight />
-                  </button>
+                  <span className="text-[10px] sm:text-sm text-gray-600">
+                    {currentPage} / {totalPages}
+                  </span>
                   <button
                     onClick={() => goToPage(totalPages)}
                     disabled={currentPage === totalPages}
-                    className="px-3 py-1 border rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="p-1.5 sm:p-2 text-gray-400 hover:text-gray-600 disabled:opacity-50 disabled:cursor-not-allowed transition"
                   >
-                    Last
+                    <FiChevronRight size={12} className="sm:size-4" />
                   </button>
                 </div>
               </div>

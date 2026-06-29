@@ -4,7 +4,7 @@ import { resultsAPI } from '../../api/results';
 import { coursesAPI } from '../../api/courses';
 import LoadingSpinner from '../../components/common/LoadingSpinner';
 import Alert from '../../components/common/Alert';
-import { FiSave, FiRefreshCw } from 'react-icons/fi';
+import { FiSave, FiRefreshCw, FiEdit2, FiLock } from 'react-icons/fi';
 
 const EditResults = () => {
   const [searchParams] = useSearchParams();
@@ -132,14 +132,14 @@ const EditResults = () => {
 
   const getGradeColor = (grade) => {
     const colors = {
-      'A': 'bg-green-100 text-green-800',
-      'B': 'bg-blue-100 text-blue-800',
-      'C': 'bg-yellow-100 text-yellow-800',
-      'D': 'bg-orange-100 text-orange-800',
-      'E': 'bg-red-100 text-red-800',
-      'F': 'bg-gray-100 text-gray-800',
+      'A': 'bg-green-100 text-green-700',
+      'B': 'bg-blue-100 text-blue-700',
+      'C': 'bg-yellow-100 text-yellow-700',
+      'D': 'bg-orange-100 text-orange-700',
+      'E': 'bg-red-100 text-red-700',
+      'F': 'bg-gray-100 text-gray-700',
     };
-    return colors[grade] || 'bg-gray-100 text-gray-800';
+    return colors[grade] || 'bg-gray-100 text-gray-700';
   };
 
   const hasPublishedResults = results.some(r => r.is_published);
@@ -150,23 +150,41 @@ const EditResults = () => {
   const selectedCourseDetails = courses.find(c => c.id === parseInt(selectedCourse));
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold text-gray-800">Edit Results</h1>
-        <p className="text-gray-500">Modify student scores for your courses</p>
+    <div className="space-y-3 sm:space-y-6 px-2 sm:px-0">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2">
+        <div>
+          <h1 className="text-base sm:text-2xl font-bold text-gray-800">Edit Results</h1>
+          <p className="text-[10px] sm:text-sm text-gray-500">Modify student scores for your courses</p>
+        </div>
+        {selectedCourse && results.length > 0 && (
+          <button
+            onClick={handleSaveAll}
+            disabled={saving || editableCount === 0}
+            className="inline-flex items-center justify-center space-x-1.5 px-3 py-1.5 sm:px-4 sm:py-2 bg-green-600 hover:bg-green-700 text-white text-[10px] sm:text-sm font-medium rounded-lg transition disabled:opacity-50 disabled:cursor-not-allowed w-full sm:w-auto"
+          >
+            {saving ? (
+              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+            ) : (
+              <FiSave size={12} className="sm:size-4" />
+            )}
+            <span>{saving ? 'Saving...' : `Save ${editableCount}`}</span>
+          </button>
+        )}
       </div>
 
       {message && (
         <Alert type={message.type} message={message.text} onClose={() => setMessage(null)} />
       )}
 
-      <div className="card">
-        <div className="mb-6">
-          <label className="block text-sm font-medium text-gray-700 mb-2">Select Course</label>
+      {/* Course Selection */}
+      <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-3 sm:p-5">
+        <div>
+          <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">Select Course</label>
           <select
             value={selectedCourse}
             onChange={(e) => setSelectedCourse(e.target.value)}
-            className="input-field max-w-md"
+            className="w-full px-3 py-1.5 sm:py-2 border border-gray-200 rounded-lg text-xs sm:text-sm focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none bg-white"
           >
             <option value="">-- Select Course --</option>
             {courses.map(course => (
@@ -178,111 +196,164 @@ const EditResults = () => {
         </div>
 
         {selectedCourse && selectedCourseDetails && (
-          <div className="mb-4 p-3 bg-gray-50 rounded-lg">
-            <p className="text-sm text-gray-600">
+          <div className="mt-3 p-2 sm:p-3 bg-gray-50 rounded-lg border border-gray-100">
+            <p className="text-[10px] sm:text-sm text-gray-600">
               <span className="font-medium">Course:</span> {selectedCourseDetails.code} - {selectedCourseDetails.title}
-              <span className="ml-4"><span className="font-medium">Credit Units:</span> {selectedCourseDetails.credit_unit}</span>
+              <span className="ml-2 sm:ml-4"><span className="font-medium">Units:</span> {selectedCourseDetails.credit_unit}</span>
             </p>
           </div>
         )}
-
-        {selectedCourse && results.length > 0 && (
-          <>
-            <div className="flex justify-between items-center mb-4">
-              <p className="text-sm text-gray-500">
-                {results.length} total results ({editableCount} editable, {results.length - editableCount} published)
-              </p>
-              <button
-                onClick={handleSaveAll}
-                disabled={saving || editableCount === 0}
-                className="btn-primary flex items-center space-x-2"
-              >
-                {saving ? (
-                  <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
-                ) : (
-                  <FiSave size={18} />
-                )}
-                <span>{saving ? 'Saving...' : `Save ${editableCount} Changes`}</span>
-              </button>
-            </div>
-
-            {hasPublishedResults && (
-              <div className="mb-4 p-3 bg-yellow-50 rounded-lg text-sm text-yellow-700">
-                Note: Published results cannot be edited.
-              </div>
-            )}
-
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead className="bg-gray-50">
-                  <tr>
-                    <th className="px-4 py-3 text-left text-sm font-semibold text-gray-600">S/N</th>
-                    <th className="px-4 py-3 text-left text-sm font-semibold text-gray-600">Matric No</th>
-                    <th className="px-4 py-3 text-left text-sm font-semibold text-gray-600">Student Name</th>
-                    <th className="px-4 py-3 text-center text-sm font-semibold text-gray-600">CA (0-40)</th>
-                    <th className="px-4 py-3 text-center text-sm font-semibold text-gray-600">Exam (0-70)</th>
-                    <th className="px-4 py-3 text-center text-sm font-semibold text-gray-600">Total</th>
-                    <th className="px-4 py-3 text-center text-sm font-semibold text-gray-600">Grade</th>
-                    <th className="px-4 py-3 text-center text-sm font-semibold text-gray-600">Status</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-200">
-                  {results.map((result, index) => (
-                    <tr key={result.id} className="hover:bg-gray-50">
-                      <td className="px-4 py-3 text-sm text-gray-600">{index + 1}</td>
-                      <td className="px-4 py-3 text-sm font-mono">{result.student_matric}</td>
-                      <td className="px-4 py-3 text-sm">{result.student_name}</td>
-                      <td className="px-4 py-3 text-center">
-                        <input
-                          type="number"
-                          min="0"
-                          max="40"
-                          step="0.5"
-                          value={result.ca_score}
-                          onChange={(e) => handleScoreChange(index, 'ca_score', e.target.value)}
-                          className={`w-20 px-2 py-1 border rounded text-center ${result.is_published ? 'bg-gray-100' : ''}`}
-                          disabled={result.is_published}
-                        />
-                      </td>
-                      <td className="px-4 py-3 text-center">
-                        <input
-                          type="number"
-                          min="0"
-                          max="70"
-                          step="0.5"
-                          value={result.exam_score}
-                          onChange={(e) => handleScoreChange(index, 'exam_score', e.target.value)}
-                          className={`w-20 px-2 py-1 border rounded text-center ${result.is_published ? 'bg-gray-100' : ''}`}
-                          disabled={result.is_published}
-                        />
-                      </td>
-                      <td className="px-4 py-3 text-center font-medium">{result.total_score}</td>
-                      <td className="px-4 py-3 text-center">
-                        <span className={`inline-block px-2 py-1 rounded text-xs font-semibold ${getGradeColor(result.grade)}`}>
-                          {result.grade}
-                        </span>
-                      </td>
-                      <td className="px-4 py-3 text-center">
-                        {result.is_published ? (
-                          <span className="text-green-600 text-xs">Published</span>
-                        ) : (
-                          <span className="text-yellow-600 text-xs">Draft</span>
-                        )}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </>
-        )}
-
-        {selectedCourse && results.length === 0 && !loading && (
-          <div className="text-center py-8 text-gray-500">
-            No results found for this course.
-          </div>
-        )}
       </div>
+
+      {/* Results Section */}
+      {selectedCourse && results.length > 0 && (
+        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-3 sm:p-5">
+          {/* Summary Bar */}
+          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2 mb-3 sm:mb-4">
+            <p className="text-[10px] sm:text-sm text-gray-500">
+              {results.length} total ({editableCount} editable, {results.length - editableCount} published)
+            </p>
+            {hasPublishedResults && (
+              <span className="inline-flex items-center text-[8px] sm:text-xs text-yellow-600 bg-yellow-50 px-2 py-0.5 rounded-full">
+                <FiLock size={10} className="sm:size-3 mr-1" /> Published locked
+              </span>
+            )}
+          </div>
+
+          {hasPublishedResults && (
+            <div className="mb-3 p-2 sm:p-3 bg-yellow-50 rounded-lg border border-yellow-200">
+              <p className="text-[9px] sm:text-sm text-yellow-700">Published results cannot be edited.</p>
+            </div>
+          )}
+
+          {/* ─── DESKTOP TABLE ──────────────────────────────────────────────── */}
+          <div className="hidden sm:block overflow-x-auto">
+            <table className="w-full">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th className="px-3 py-2 text-left text-[10px] font-semibold text-gray-500 uppercase">#</th>
+                  <th className="px-3 py-2 text-left text-[10px] font-semibold text-gray-500 uppercase">Matric</th>
+                  <th className="px-3 py-2 text-left text-[10px] font-semibold text-gray-500 uppercase">Student</th>
+                  <th className="px-3 py-2 text-center text-[10px] font-semibold text-gray-500 uppercase">CA (0-40)</th>
+                  <th className="px-3 py-2 text-center text-[10px] font-semibold text-gray-500 uppercase">Exam (0-70)</th>
+                  <th className="px-3 py-2 text-center text-[10px] font-semibold text-gray-500 uppercase">Total</th>
+                  <th className="px-3 py-2 text-center text-[10px] font-semibold text-gray-500 uppercase">Grade</th>
+                  <th className="px-3 py-2 text-center text-[10px] font-semibold text-gray-500 uppercase">Status</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-100">
+                {results.map((result, index) => (
+                  <tr key={result.id} className="hover:bg-gray-50 transition">
+                    <td className="px-3 py-2 text-sm text-gray-500">{index + 1}</td>
+                    <td className="px-3 py-2 text-sm font-mono">{result.student_matric}</td>
+                    <td className="px-3 py-2 text-sm">{result.student_name}</td>
+                    <td className="px-3 py-2 text-center">
+                      <input
+                        type="number"
+                        min="0"
+                        max="40"
+                        step="0.5"
+                        value={result.ca_score}
+                        onChange={(e) => handleScoreChange(index, 'ca_score', e.target.value)}
+                        className={`w-16 px-2 py-1 border border-gray-200 rounded text-xs text-center focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none ${result.is_published ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : ''}`}
+                        disabled={result.is_published}
+                      />
+                    </td>
+                    <td className="px-3 py-2 text-center">
+                      <input
+                        type="number"
+                        min="0"
+                        max="70"
+                        step="0.5"
+                        value={result.exam_score}
+                        onChange={(e) => handleScoreChange(index, 'exam_score', e.target.value)}
+                        className={`w-16 px-2 py-1 border border-gray-200 rounded text-xs text-center focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none ${result.is_published ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : ''}`}
+                        disabled={result.is_published}
+                      />
+                    </td>
+                    <td className="px-3 py-2 text-sm text-center font-medium">{result.total_score}</td>
+                    <td className="px-3 py-2 text-center">
+                      <span className={`inline-block px-2 py-0.5 rounded-full text-[10px] font-medium ${getGradeColor(result.grade)}`}>
+                        {result.grade}
+                      </span>
+                    </td>
+                    <td className="px-3 py-2 text-center">
+                      {result.is_published ? (
+                        <span className="text-[10px] text-green-600 flex items-center justify-center">
+                          <FiLock size={10} className="mr-1" /> Published
+                        </span>
+                      ) : (
+                        <span className="text-[10px] text-yellow-600 flex items-center justify-center">
+                          <FiEdit2 size={10} className="mr-1" /> Draft
+                        </span>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          {/* ─── MOBILE CARD VIEW ───────────────────────────────────────────── */}
+          <div className="sm:hidden space-y-2">
+            {results.map((result, index) => (
+              <div key={result.id} className={`p-3 rounded-lg border ${result.is_published ? 'bg-gray-50 border-gray-200' : 'bg-white border-gray-200'}`}>
+                <div className="flex items-start justify-between">
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center space-x-1.5">
+                      <span className="text-[8px] text-gray-400">#{result.student_matric}</span>
+                      {result.is_published && <FiLock size={8} className="text-green-600" />}
+                    </div>
+                    <p className="text-[10px] font-medium text-gray-800 truncate">{result.student_name}</p>
+                    <div className="flex items-center space-x-2 mt-1">
+                      <span className="text-[8px] text-gray-500">CA:</span>
+                      <input
+                        type="number"
+                        min="0"
+                        max="40"
+                        step="0.5"
+                        value={result.ca_score}
+                        onChange={(e) => handleScoreChange(index, 'ca_score', e.target.value)}
+                        className={`w-12 px-1 py-0.5 border border-gray-200 rounded text-[8px] text-center ${result.is_published ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : ''}`}
+                        disabled={result.is_published}
+                      />
+                      <span className="text-[8px] text-gray-500">Exam:</span>
+                      <input
+                        type="number"
+                        min="0"
+                        max="70"
+                        step="0.5"
+                        value={result.exam_score}
+                        onChange={(e) => handleScoreChange(index, 'exam_score', e.target.value)}
+                        className={`w-12 px-1 py-0.5 border border-gray-200 rounded text-[8px] text-center ${result.is_published ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : ''}`}
+                        disabled={result.is_published}
+                      />
+                      <span className="text-[8px] font-medium text-gray-700">Total: {result.total_score}</span>
+                      <span className={`inline-block px-1.5 py-0.5 rounded text-[8px] font-medium ${getGradeColor(result.grade)}`}>
+                        {result.grade}
+                      </span>
+                    </div>
+                  </div>
+                  <div className="flex-shrink-0 ml-2">
+                    {result.is_published ? (
+                      <span className="text-[8px] text-green-600">Published</span>
+                    ) : (
+                      <span className="text-[8px] text-yellow-600">Draft</span>
+                    )}
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {selectedCourse && results.length === 0 && !loading && (
+        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 sm:p-8 text-center">
+          <FiEdit2 className="mx-auto text-gray-300 text-2xl sm:text-3xl mb-2" />
+          <p className="text-sm text-gray-500">No results found for this course.</p>
+        </div>
+      )}
     </div>
   );
 };

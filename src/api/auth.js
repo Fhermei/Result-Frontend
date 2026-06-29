@@ -1,24 +1,24 @@
 import axios from './axios';
 
 export const authAPI = {
-  // Login
-  login: (email, password) => axios.post('/auth/login/', { email, password }),
-  
+  // Login — payload can be { email, password } or { matric_no, password }
+  login: (payload) => axios.post('/auth/login/', payload),
+
   // Logout
   logout: (refreshToken) => axios.post('/auth/logout/', { refresh: refreshToken }),
-  
+
   // Get current user
   getMe: () => axios.get('/auth/me/'),
-  
+
   // Change password
-  changePassword: (oldPassword, newPassword, newPassword2) => 
-    axios.post('/auth/change-password/', { 
-      old_password: oldPassword, 
-      new_password: newPassword, 
-      new_password2: newPassword2 
+  changePassword: (oldPassword, newPassword, newPassword2) =>
+    axios.post('/auth/change-password/', {
+      old_password: oldPassword,
+      new_password: newPassword,
+      new_password2: newPassword2,
     }),
-  
-  // Get users count - single API call for dashboard
+
+  // Get users count
   getUsersCount: async () => {
     try {
       const response = await axios.get('/auth/users/?page=1&page_size=1');
@@ -31,24 +31,28 @@ export const authAPI = {
       return { count: 0 };
     }
   },
-  
+
   // Get users with pagination
   getUsers: async (params = {}) => {
     try {
       const queryParams = { page_size: 20, ...params };
       const response = await axios.get('/auth/users/', { params: queryParams });
-      
       if (response.data && response.data.results) {
         return { data: response.data };
       }
-      return { data: { results: Array.isArray(response.data) ? response.data : [], count: 0 } };
+      return {
+        data: {
+          results: Array.isArray(response.data) ? response.data : [],
+          count: 0,
+        },
+      };
     } catch (error) {
       console.error('Error fetching users:', error);
       return { data: { results: [], count: 0 } };
     }
   },
-  
-  // Get all users (without pagination - use carefully)
+
+  // Get all users (no pagination — use sparingly)
   getAllUsers: async () => {
     try {
       const response = await axios.get('/auth/users/?page_size=1000');
@@ -61,16 +65,16 @@ export const authAPI = {
       return { data: [] };
     }
   },
-  
-  // Create user
+
+  // Create user (lecturer / admin)
   createUser: (data) => axios.post('/auth/users/', data),
-  
+
   // Update user
   updateUser: (id, data) => axios.patch(`/auth/users/${id}/`, data),
-  
+
   // Delete user (soft delete)
   deleteUser: (id) => axios.delete(`/auth/users/${id}/`),
-  
+
   // Get all lecturers
   getLecturers: async () => {
     try {

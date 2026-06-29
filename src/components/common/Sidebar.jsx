@@ -1,7 +1,7 @@
 import React from 'react';
-import { NavLink } from 'react-router-dom';
-import { 
-  FiHome, FiUsers, FiBookOpen, FiCalendar, FiClock, 
+import { NavLink, useLocation } from 'react-router-dom';
+import {
+  FiHome, FiUsers, FiBookOpen, FiCalendar, FiClock,
   FiCheckCircle, FiBarChart2, FiUpload, FiEye, FiEdit,
   FiAward, FiFileText, FiPlus, FiShield, FiGrid, FiFolder
 } from 'react-icons/fi';
@@ -27,29 +27,34 @@ const iconMap = {
 };
 
 const Sidebar = ({ navItems, title }) => {
+  const location = useLocation();
+
   return (
-    <div className="w-64 bg-primary-800 text-white flex flex-col">
-      <div className="p-4 border-b border-primary-700">
-        <h2 className="text-xl font-bold">{title}</h2>
+    <div className="w-56 sm:w-64 bg-gray-800 text-white flex flex-col flex-shrink-0 h-screen sticky top-0 overflow-hidden">
+      <div className="p-3 sm:p-4 border-b border-gray-700">
+        <h2 className="text-sm sm:text-xl font-bold tracking-tight">{title}</h2>
       </div>
-      
-      <nav className="flex-1 overflow-y-auto py-4">
+
+      <nav className="flex-1 overflow-y-auto py-2 sm:py-4">
         {navItems.map((item) => {
           const Icon = iconMap[item.label] || FiHome;
+          const isActive = location.pathname === item.path;
+
           return (
             <NavLink
               key={item.path}
               to={item.path}
-              className={({ isActive }) =>
-                `flex items-center space-x-3 px-4 py-3 transition duration-200 ${
+              end
+              className={() =>
+                `flex items-center space-x-2 sm:space-x-3 px-3 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm transition duration-200 ${
                   isActive
-                    ? 'bg-primary-700 border-l-4 border-white'
-                    : 'hover:bg-primary-700'
+                    ? 'bg-gray-700 border-l-4 border-green-500 font-semibold'
+                    : 'hover:bg-gray-700 border-l-4 border-transparent'
                 }`
               }
             >
-              <Icon size={18} />
-              <span>{item.label}</span>
+              <Icon size={14} className="sm:size-[18px] flex-shrink-0" />
+              <span className="truncate">{item.label}</span>
             </NavLink>
           );
         })}

@@ -3,29 +3,45 @@ import axios from './axios';
 export const coursesAPI = {
   // Get available courses for registration (students can see all courses at their level)
   getAvailableCourses: async (params) => {
-    const response = await axios.get('/courses/', { params });
-    if (response.data && response.data.results) {
-      return { data: response.data.results, count: response.data.count };
+    try {
+      const response = await axios.get('/courses/', { params });
+      if (response.data && response.data.results) {
+        return { data: response.data.results, count: response.data.count };
+      }
+      return { data: Array.isArray(response.data) ? response.data : [], count: 0 };
+    } catch (error) {
+      console.error('Error fetching available courses:', error);
+      return { data: [], count: 0 };
     }
-    return { data: Array.isArray(response.data) ? response.data : [], count: 0 };
   },
   
   // Get courses count (single API call for dashboard)
   getCoursesCount: async () => {
-    const response = await axios.get('/courses/?page=1&page_size=1');
-    if (response.data && typeof response.data.count === 'number') {
-      return { count: response.data.count };
+    try {
+      const response = await axios.get('/courses/?page=1&page_size=1');
+      if (response.data && typeof response.data.count === 'number') {
+        return { count: response.data.count };
+      }
+      return { count: 0 };
+    } catch (error) {
+      console.error('Error getting courses count:', error);
+      return { count: 0 };
     }
-    return { count: 0 };
   },
   
   // Get courses with pagination
   getCourses: async (params) => {
-    const response = await axios.get('/courses/', { params });
-    if (response.data && response.data.results) {
-      return { data: response.data };
+    try {
+      const queryParams = { page_size: 20, ...params };
+      const response = await axios.get('/courses/', { params: queryParams });
+      if (response.data && response.data.results) {
+        return { data: response.data };
+      }
+      return { data: { results: Array.isArray(response.data) ? response.data : [], count: 0 } };
+    } catch (error) {
+      console.error('Error fetching courses:', error);
+      return { data: { results: [], count: 0 } };
     }
-    return { data: { results: Array.isArray(response.data) ? response.data : [], count: 0 } };
   },
   
   // Get single course
@@ -42,11 +58,16 @@ export const coursesAPI = {
   
   // Get courses for current lecturer/student
   getMyCourses: async () => {
-    const response = await axios.get('/courses/my-courses/');
-    if (response.data && response.data.results) {
-      return { data: response.data.results };
+    try {
+      const response = await axios.get('/courses/my-courses/');
+      if (response.data && response.data.results) {
+        return { data: response.data.results };
+      }
+      return { data: Array.isArray(response.data) ? response.data : [] };
+    } catch (error) {
+      console.error('Error fetching my courses:', error);
+      return { data: [] };
     }
-    return { data: Array.isArray(response.data) ? response.data : [] };
   },
   
   // Register for courses (student)
@@ -54,19 +75,29 @@ export const coursesAPI = {
   
   // Get student's registered courses
   getMyRegistrations: async () => {
-    const response = await axios.get('/courses/my-registrations/');
-    if (response.data && response.data.results) {
-      return { data: response.data.results };
+    try {
+      const response = await axios.get('/courses/my-registrations/');
+      if (response.data && response.data.results) {
+        return { data: response.data.results };
+      }
+      return { data: Array.isArray(response.data) ? response.data : [] };
+    } catch (error) {
+      console.error('Error fetching my registrations:', error);
+      return { data: [] };
     }
-    return { data: Array.isArray(response.data) ? response.data : [] };
   },
   
   // Get students enrolled in a course (lecturer)
   getCourseStudents: async (courseId, params = {}) => {
-    const response = await axios.get(`/courses/${courseId}/students/`, { params });
-    if (response.data && response.data.results) {
-      return { data: response.data };
+    try {
+      const response = await axios.get(`/courses/${courseId}/students/`, { params });
+      if (response.data && response.data.results) {
+        return { data: response.data };
+      }
+      return { data: Array.isArray(response.data) ? response.data : [] };
+    } catch (error) {
+      console.error('Error fetching course students:', error);
+      return { data: [] };
     }
-    return { data: Array.isArray(response.data) ? response.data : [] };
   },
 };

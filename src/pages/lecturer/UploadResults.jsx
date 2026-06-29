@@ -6,7 +6,7 @@ import { academicsAPI } from '../../api/academics';
 import { useAuth } from '../../context/AuthContext';
 import LoadingSpinner from '../../components/common/LoadingSpinner';
 import Alert from '../../components/common/Alert';
-import { FiUpload } from 'react-icons/fi';
+import { FiUpload, FiBookOpen, FiUser, FiCalendar } from 'react-icons/fi';
 
 const UploadResults = () => {
   const [searchParams] = useSearchParams();
@@ -49,7 +49,6 @@ const UploadResults = () => {
       setCourses(coursesRes.data || []);
       setSemesters(semestersRes.data || []);
       
-      // Set current semester as default
       const currentSem = (semestersRes.data || []).find(s => s.is_current);
       if (currentSem) {
         setSelectedSemester(currentSem.id);
@@ -65,18 +64,32 @@ const UploadResults = () => {
   const fetchStudentsForCourse = async () => {
     setLoading(true);
     try {
-      // Get course details
       const course = courses.find(c => c.id === parseInt(selectedCourse));
       if (course) {
         setCourseDetails(course);
         
-        // Get students enrolled in this course using the new endpoint
+        // Get students enrolled in this course
         const studentsRes = await coursesAPI.getCourseStudents(selectedCourse);
-        const enrolledStudents = studentsRes.data || [];
+        
+        // Handle different response formats properly
+        let enrolledStudents = [];
+        
+        if (studentsRes && studentsRes.data) {
+          if (Array.isArray(studentsRes.data)) {
+            enrolledStudents = studentsRes.data;
+          } else if (studentsRes.data.results && Array.isArray(studentsRes.data.results)) {
+            enrolledStudents = studentsRes.data.results;
+          } else if (studentsRes.data.data && Array.isArray(studentsRes.data.data)) {
+            enrolledStudents = studentsRes.data.data;
+          }
+        } else if (Array.isArray(studentsRes)) {
+          enrolledStudents = studentsRes;
+        }
+        
+        console.log('Enrolled students:', enrolledStudents);
         
         setStudents(enrolledStudents);
         
-        // Initialize results array
         const initialResults = enrolledStudents.map(student => ({
           student_id: student.id,
           student_name: student.full_name || student.user_details?.full_name || `Student ${student.id}`,
@@ -101,7 +114,6 @@ const UploadResults = () => {
     const numValue = parseFloat(value) || 0;
     updatedResults[index][field] = numValue;
     
-    // Calculate total and grade
     const ca = updatedResults[index].ca_score || 0;
     const exam = updatedResults[index].exam_score || 0;
     const total = ca + exam;
@@ -158,7 +170,6 @@ const UploadResults = () => {
         setMessage({ type: 'success', text: response.data.message });
       }
       
-      // Refresh the students list to show updated results
       fetchStudentsForCourse();
       
     } catch (error) {
@@ -174,23 +185,26 @@ const UploadResults = () => {
 
   const getGradeColor = (grade) => {
     const colors = {
-      'A': 'bg-green-100 text-green-800',
-      'B': 'bg-blue-100 text-blue-800',
-      'C': 'bg-yellow-100 text-yellow-800',
-      'D': 'bg-orange-100 text-orange-800',
-      'E': 'bg-red-100 text-red-800',
-      'F': 'bg-gray-100 text-gray-800',
+      'A': 'bg-green-100 text-green-700',
+      'B': 'bg-blue-100 text-blue-700',
+      'C': 'bg-yellow-100 text-yellow-700',
+      'D': 'bg-orange-100 text-orange-700',
+      'E': 'bg-red-100 text-red-700',
+      'F': 'bg-gray-100 text-gray-700',
     };
-    return colors[grade] || 'bg-gray-100 text-gray-800';
+    return colors[grade] || 'bg-gray-100 text-gray-700';
   };
 
   if (loading && !results.length) return <LoadingSpinner />;
 
+  const validResultsCount = results.filter(r => r.ca_score && r.exam_score).length;
+
   return (
-    <div className="space-y-6">
+    <div className="space-y-3 sm:space-y-6 px-2 sm:px-0">
+      {/* Header */}
       <div>
-        <h1 className="text-2xl font-bold text-gray-800">Upload Results</h1>
-        <p className="text-gray-500">Enter scores for your students</p>
+        <h1 className="text-base sm:text-2xl font-bold text-gray-800">Upload Results</h1>
+        <p className="text-[10px] sm:text-sm text-gray-500">Enter scores for your students</p>
       </div>
 
       {message && (
@@ -198,14 +212,14 @@ const UploadResults = () => {
       )}
 
       {/* Selection Controls */}
-      <div className="card">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-3 sm:p-5">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Select Course</label>
+            <label className="block text-[10px] sm:text-sm font-medium text-gray-700 mb-1">Select Course</label>
             <select
               value={selectedCourse}
               onChange={(e) => setSelectedCourse(e.target.value)}
-              className="input-field"
+              className="w-full px-3 py-1.5 sm:py-2 border border-gray-200 rounded-lg text-xs sm:text-sm focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none bg-white"
             >
               <option value="">-- Select Course --</option>
               {courses.map(course => (
@@ -217,11 +231,11 @@ const UploadResults = () => {
           </div>
           
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Select Semester</label>
+            <label className="block text-[10px] sm:text-sm font-medium text-gray-700 mb-1">Select Semester</label>
             <select
               value={selectedSemester}
               onChange={(e) => setSelectedSemester(e.target.value)}
-              className="input-field"
+              className="w-full px-3 py-1.5 sm:py-2 border border-gray-200 rounded-lg text-xs sm:text-sm focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none bg-white"
             >
               <option value="">-- Select Semester --</option>
               {semesters.map(sem => (
@@ -234,54 +248,60 @@ const UploadResults = () => {
         </div>
         
         {courseDetails && (
-          <div className="mt-4 p-3 bg-gray-50 rounded-lg">
-            <p className="text-sm text-gray-600">
+          <div className="mt-3 p-2 sm:p-3 bg-gray-50 rounded-lg border border-gray-100">
+            <p className="text-[10px] sm:text-sm text-gray-600">
               <span className="font-medium">Course:</span> {courseDetails.code} - {courseDetails.title}
-              <span className="ml-4"><span className="font-medium">Credit Units:</span> {courseDetails.credit_unit}</span>
+              <span className="ml-2 sm:ml-4"><span className="font-medium">Credit Units:</span> {courseDetails.credit_unit}</span>
             </p>
           </div>
         )}
       </div>
 
-      {/* Results Table */}
+      {/* Results Section */}
       {selectedCourse && students.length > 0 && (
-        <div className="card">
-          <div className="flex justify-between items-center mb-4">
-            <h2 className="text-lg font-semibold text-gray-800">Student Scores</h2>
+        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-3 sm:p-5">
+          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2 mb-3 sm:mb-4">
+            <h2 className="text-xs sm:text-lg font-semibold text-gray-800">
+              Student Scores
+              <span className="text-[10px] sm:text-sm font-normal text-gray-500 ml-1">
+                ({validResultsCount} of {results.length} have scores)
+              </span>
+            </h2>
             <button
               onClick={handleBulkUpload}
               disabled={submitting}
-              className="btn-primary flex items-center space-x-2"
+              className="inline-flex items-center justify-center space-x-1.5 px-3 py-1.5 sm:px-4 sm:py-2 bg-green-600 hover:bg-green-700 text-white text-[10px] sm:text-sm font-medium rounded-lg transition disabled:opacity-50 disabled:cursor-not-allowed w-full sm:w-auto"
             >
               {submitting ? (
-                <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
               ) : (
-                <FiUpload size={18} />
+                <FiUpload size={12} className="sm:size-4" />
               )}
-              <span>{submitting ? 'Uploading...' : 'Upload All Results'}</span>
+              <span>{submitting ? 'Uploading...' : `Upload ${validResultsCount}`}</span>
             </button>
           </div>
 
-          <div className="overflow-x-auto">
+          {/* Desktop Table */}
+          <div className="hidden sm:block overflow-x-auto max-h-[600px] overflow-y-auto">
             <table className="w-full">
-              <thead className="bg-gray-50">
+              <thead className="bg-gray-50 sticky top-0">
                 <tr>
-                  <th className="px-4 py-3 text-left text-sm font-semibold text-gray-600">S/N</th>
-                  <th className="px-4 py-3 text-left text-sm font-semibold text-gray-600">Matric No</th>
-                  <th className="px-4 py-3 text-left text-sm font-semibold text-gray-600">Student Name</th>
-                  <th className="px-4 py-3 text-center text-sm font-semibold text-gray-600">CA Score (0-40)</th>
-                  <th className="px-4 py-3 text-center text-sm font-semibold text-gray-600">Exam Score (0-70)</th>
-                  <th className="px-4 py-3 text-center text-sm font-semibold text-gray-600">Total</th>
-                  <th className="px-4 py-3 text-center text-sm font-semibold text-gray-600">Grade</th>
+                  <th className="px-3 py-2 text-left text-[10px] font-semibold text-gray-500 uppercase">S/N</th>
+                  <th className="px-3 py-2 text-left text-[10px] font-semibold text-gray-500 uppercase">Matric</th>
+                  <th className="px-3 py-2 text-left text-[10px] font-semibold text-gray-500 uppercase">Student</th>
+                  <th className="px-3 py-2 text-center text-[10px] font-semibold text-gray-500 uppercase">CA (0-40)</th>
+                  <th className="px-3 py-2 text-center text-[10px] font-semibold text-gray-500 uppercase">Exam (0-70)</th>
+                  <th className="px-3 py-2 text-center text-[10px] font-semibold text-gray-500 uppercase">Total</th>
+                  <th className="px-3 py-2 text-center text-[10px] font-semibold text-gray-500 uppercase">Grade</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-200">
+              <tbody className="divide-y divide-gray-100">
                 {results.map((result, index) => (
-                  <tr key={result.student_id} className="hover:bg-gray-50">
-                    <td className="px-4 py-3 text-sm text-gray-600">{index + 1}</td>
-                    <td className="px-4 py-3 text-sm font-mono">{result.matric_no}</td>
-                    <td className="px-4 py-3 text-sm">{result.student_name}</td>
-                    <td className="px-4 py-3 text-center">
+                  <tr key={result.student_id} className="hover:bg-gray-50 transition">
+                    <td className="px-3 py-2 text-sm text-gray-500">{index + 1}</td>
+                    <td className="px-3 py-2 text-sm font-mono">{result.matric_no}</td>
+                    <td className="px-3 py-2 text-sm">{result.student_name}</td>
+                    <td className="px-3 py-2 text-center">
                       <input
                         type="number"
                         min="0"
@@ -289,10 +309,10 @@ const UploadResults = () => {
                         step="0.5"
                         value={result.ca_score}
                         onChange={(e) => handleScoreChange(index, 'ca_score', e.target.value)}
-                        className="w-20 px-2 py-1 border border-gray-300 rounded text-center focus:ring-2 focus:ring-primary-500"
+                        className="w-16 px-2 py-1 border border-gray-200 rounded text-xs text-center focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none"
                       />
                     </td>
-                    <td className="px-4 py-3 text-center">
+                    <td className="px-3 py-2 text-center">
                       <input
                         type="number"
                         min="0"
@@ -300,15 +320,15 @@ const UploadResults = () => {
                         step="0.5"
                         value={result.exam_score}
                         onChange={(e) => handleScoreChange(index, 'exam_score', e.target.value)}
-                        className="w-20 px-2 py-1 border border-gray-300 rounded text-center focus:ring-2 focus:ring-primary-500"
+                        className="w-16 px-2 py-1 border border-gray-200 rounded text-xs text-center focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none"
                       />
                     </td>
-                    <td className="px-4 py-3 text-center font-medium">
+                    <td className="px-3 py-2 text-sm text-center font-medium">
                       {result.total || '-'}
                     </td>
-                    <td className="px-4 py-3 text-center">
+                    <td className="px-3 py-2 text-center">
                       {result.grade && (
-                        <span className={`inline-block px-2 py-1 rounded text-xs font-semibold ${getGradeColor(result.grade)}`}>
+                        <span className={`inline-block px-2 py-0.5 rounded-full text-[10px] font-medium ${getGradeColor(result.grade)}`}>
                           {result.grade}
                         </span>
                       )}
@@ -318,14 +338,66 @@ const UploadResults = () => {
               </tbody>
             </table>
           </div>
+
+          {/* Mobile Cards */}
+          <div className="sm:hidden space-y-2 max-h-[500px] overflow-y-auto">
+            {results.map((result, index) => (
+              <div key={result.student_id} className="bg-gray-50 rounded-lg p-2.5">
+                <div className="flex items-start justify-between">
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center space-x-1.5">
+                      <span className="text-[8px] text-gray-400">#{result.matric_no}</span>
+                    </div>
+                    <p className="text-[9px] font-medium text-gray-800 truncate">{result.student_name}</p>
+                    <div className="flex flex-wrap items-center gap-1 mt-1">
+                      <span className="text-[8px] text-gray-500">CA:</span>
+                      <input
+                        type="number"
+                        min="0"
+                        max="40"
+                        step="0.5"
+                        value={result.ca_score}
+                        onChange={(e) => handleScoreChange(index, 'ca_score', e.target.value)}
+                        className="w-12 px-1 py-0.5 border border-gray-200 rounded text-[8px] text-center focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none"
+                      />
+                      <span className="text-[8px] text-gray-500">Exam:</span>
+                      <input
+                        type="number"
+                        min="0"
+                        max="70"
+                        step="0.5"
+                        value={result.exam_score}
+                        onChange={(e) => handleScoreChange(index, 'exam_score', e.target.value)}
+                        className="w-12 px-1 py-0.5 border border-gray-200 rounded text-[8px] text-center focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none"
+                      />
+                      <span className="text-[8px] font-medium text-gray-700">Total: {result.total || '-'}</span>
+                      {result.grade && (
+                        <span className={`inline-block px-1.5 py-0.5 rounded text-[8px] font-medium ${getGradeColor(result.grade)}`}>
+                          {result.grade}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {validResultsCount > 0 && (
+            <div className="mt-3 pt-3 border-t border-gray-100">
+              <p className="text-[8px] sm:text-xs text-gray-400">
+                {validResultsCount} of {results.length} students have complete scores
+              </p>
+            </div>
+          )}
         </div>
       )}
 
       {selectedCourse && students.length === 0 && !loading && (
-        <div className="card text-center py-8 text-gray-500">
-          No students enrolled in this course yet.
-          <br />
-          <span className="text-sm">Students need to register for this course first.</span>
+        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 sm:p-8 text-center">
+          <FiUser className="mx-auto text-gray-300 text-2xl sm:text-3xl mb-2" />
+          <p className="text-sm text-gray-500">No students enrolled in this course yet.</p>
+          <p className="text-xs text-gray-400 mt-1">Students need to register for this course first.</p>
         </div>
       )}
     </div>

@@ -1,6 +1,9 @@
 import axios from 'axios';
 
-const API_URL = 'https://result-backend-2b4b.onrender.com/api';
+// Use environment variable for API URL
+const API_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000/api';
+
+console.log('API URL:', API_URL);
 
 const axiosInstance = axios.create({
   baseURL: API_URL,
@@ -30,28 +33,19 @@ axiosInstance.interceptors.response.use(
   async (error) => {
     const originalRequest = error.config;
     
-    // If error is 401 and we haven't tried to refresh yet
     if (error.response?.status === 401 && !originalRequest._retry) {
       originalRequest._retry = true;
       
       try {
         const refreshToken = localStorage.getItem('refresh_token');
-        if (!refreshToken) {
-          throw new Error('No refresh token');
-        }
-        
         const response = await axios.post(`${API_URL}/auth/token/refresh/`, {
           refresh: refreshToken,
         });
         
-        const { access } = response.data;
-        localStorage.setItem('access_token', access);
-        
-        originalRequest.headers.Authorization = `Bearer ${access}`;
+        localStorage.setItem('access_token', response.data.access);
+        originalRequest.headers.Authorization = `Bearer ${response.data.access}`;
         return axiosInstance(originalRequest);
-        
       } catch (refreshError) {
-        console.error('Refresh token failed:', refreshError);
         localStorage.removeItem('access_token');
         localStorage.removeItem('refresh_token');
         window.location.href = '/login';

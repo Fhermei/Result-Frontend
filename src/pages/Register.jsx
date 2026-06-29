@@ -1,8 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { authAPI } from '../api/auth';
 import { academicsAPI } from '../api/academics';
-import { FiUser, FiMail, FiLock, FiPhone, FiUserPlus, FiArrowLeft } from 'react-icons/fi';
+import { studentsAPI } from '../api/students';
 import toast from 'react-hot-toast';
 
 const Register = () => {
@@ -15,17 +15,15 @@ const Register = () => {
     first_name: '',
     last_name: '',
     phone: '',
-    role: 'student',
     password: '',
     password2: '',
-    // Student specific
     matric_no: '',
     department_id: '',
     level_id: '',
     admission_year: new Date().getFullYear(),
   });
 
-  React.useEffect(() => {
+  useEffect(() => {
     fetchAcademicData();
   }, []);
 
@@ -35,18 +33,19 @@ const Register = () => {
         academicsAPI.getDepartments(),
         academicsAPI.getLevels(),
       ]);
-      setDepartments(deptsRes.data);
-      setLevels(levelsRes.data);
+      
+      const deptsData = deptsRes.data?.results || deptsRes.data || [];
+      const levelsData = levelsRes.data?.results || levelsRes.data || [];
+      
+      setDepartments(deptsData);
+      setLevels(levelsData);
     } catch (error) {
-      console.error('Failed to fetch academic data:', error);
+      toast.error('Failed to load departments and levels. Please refresh.');
     }
   };
 
   const handleChange = (e) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value,
-    });
+    setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
   const handleSubmit = async (e) => {
@@ -65,248 +64,202 @@ const Register = () => {
     setLoading(true);
     
     try {
-      if (formData.role === 'student') {
-        // Student registration
-        await studentsAPI.createStudent({
-          email: formData.email,
-          first_name: formData.first_name,
-          last_name: formData.last_name,
-          phone: formData.phone,
-          matric_no: formData.matric_no,
-          department_id: formData.department_id,
-          level_id: formData.level_id,
-          admission_year: formData.admission_year,
-          password: formData.password,
-          password2: formData.password2,
-        });
-        toast.success('Student account created successfully! Please login.');
-      } else {
-        // Lecturer/Admin registration (requires admin approval)
-        await authAPI.createUser({
-          email: formData.email,
-          first_name: formData.first_name,
-          last_name: formData.last_name,
-          phone: formData.phone,
-          role: formData.role,
-          password: formData.password,
-          password2: formData.password2,
-        });
-        toast.success(`${formData.role} account created successfully! Please login.`);
-      }
+      const studentData = {
+        email: formData.email.trim().toLowerCase(),
+        first_name: formData.first_name.trim(),
+        last_name: formData.last_name.trim(),
+        phone: formData.phone.trim(),
+        matric_no: formData.matric_no.trim().toUpperCase(),
+        department_id: parseInt(formData.department_id, 10),
+        level_id: parseInt(formData.level_id, 10),
+        admission_year: parseInt(formData.admission_year, 10),
+        password: formData.password,
+        password2: formData.password2,
+      };
       
+      await studentsAPI.createStudent(studentData);
+      toast.success('Account created successfully! Please login.');
       navigate('/login');
+      
     } catch (error) {
-      const message = error.response?.data?.email?.[0] || 
-                     error.response?.data?.message || 
-                     'Registration failed. Please try again.';
-      toast.error(message);
+      const errorMsg = error.response?.data?.email?.[0] || 
+                       error.response?.data?.matric_no?.[0] ||
+                       'Registration failed. Please try again.';
+      toast.error(errorMsg);
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-r from-primary-600 to-primary-800 py-12 px-4">
-      <div className="bg-white rounded-2xl shadow-xl w-full max-w-2xl p-8">
+    <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4 py-8">
+      <div className="bg-white rounded-2xl shadow-lg w-full max-w-2xl p-6 sm:p-8">
+        {/* Header */}
         <div className="text-center mb-8">
-          <div className="w-16 h-16 bg-primary-100 rounded-full flex items-center justify-center mx-auto mb-4">
-            <FiUserPlus className="text-primary-600 text-2xl" />
-          </div>
-          <h1 className="text-2xl font-bold text-gray-800">Create Account</h1>
-          <p className="text-gray-500 mt-2">Register for the Blockchain Result System</p>
+          <h1 className="text-xl sm:text-2xl font-bold text-gray-800">Create Account</h1>
+          {/* <p className="text-sm text-gray-500 mt-1">Register for the Blockchain Result System</p> */}
         </div>
         
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {/* Name Fields */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">First Name</label>
-              <div className="relative">
-                <FiUser className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={16} />
-                <input
-                  type="text"
-                  name="first_name"
-                  value={formData.first_name}
-                  onChange={handleChange}
-                  className="input-field pl-10"
-                  required
-                />
-              </div>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Last Name</label>
-              <div className="relative">
-                <FiUser className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={16} />
-                <input
-                  type="text"
-                  name="last_name"
-                  value={formData.last_name}
-                  onChange={handleChange}
-                  className="input-field pl-10"
-                  required
-                />
-              </div>
-            </div>
-          </div>
-          
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Email Address</label>
-            <div className="relative">
-              <FiMail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={16} />
+              <label className="block text-xs font-medium text-gray-700 mb-1">First Name</label>
               <input
-                type="email"
-                name="email"
-                value={formData.email}
+                type="text"
+                name="first_name"
+                value={formData.first_name}
                 onChange={handleChange}
-                className="input-field pl-10"
+                className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none"
+                required
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-gray-700 mb-1">Last Name</label>
+              <input
+                type="text"
+                name="last_name"
+                value={formData.last_name}
+                onChange={handleChange}
+                className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none"
                 required
               />
             </div>
           </div>
           
+          {/* Email */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Phone Number</label>
-            <div className="relative">
-              <FiPhone className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={16} />
-              <input
-                type="tel"
-                name="phone"
-                value={formData.phone}
+            <label className="block text-xs font-medium text-gray-700 mb-1">Email Address</label>
+            <input
+              type="email"
+              name="email"
+              value={formData.email}
+              onChange={handleChange}
+              className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none"
+              required
+            />
+          </div>
+          
+          {/* Phone */}
+          <div>
+            <label className="block text-xs font-medium text-gray-700 mb-1">Phone Number</label>
+            <input
+              type="tel"
+              name="phone"
+              value={formData.phone}
+              onChange={handleChange}
+              className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none"
+            />
+          </div>
+          
+          {/* Matric Number */}
+          <div>
+            <label className="block text-xs font-medium text-gray-700 mb-1">Matriculation Number</label>
+            <input
+              type="text"
+              name="matric_no"
+              value={formData.matric_no}
+              onChange={handleChange}
+              placeholder="e.g., U21/01/12345"
+              className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none"
+              required
+            />
+          </div>
+          
+          {/* Department & Level */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <label className="block text-xs font-medium text-gray-700 mb-1">Department</label>
+              <select
+                name="department_id"
+                value={formData.department_id}
                 onChange={handleChange}
-                className="input-field pl-10"
+                className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none bg-white"
+                required
+              >
+                <option value="">Select Department</option>
+                {departments.map(dept => (
+                  <option key={dept.id} value={dept.id}>{dept.name}</option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-gray-700 mb-1">Current Level</label>
+              <select
+                name="level_id"
+                value={formData.level_id}
+                onChange={handleChange}
+                className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none bg-white"
+                required
+              >
+                <option value="">Select Level</option>
+                {levels.map(level => (
+                  <option key={level.id} value={level.id}>{level.level} Level</option>
+                ))}
+              </select>
+            </div>
+          </div>
+          
+          {/* Admission Year */}
+          <div>
+            <label className="block text-xs font-medium text-gray-700 mb-1">Admission Year</label>
+            <input
+              type="number"
+              name="admission_year"
+              value={formData.admission_year}
+              onChange={handleChange}
+              min="2015"
+              max={new Date().getFullYear()}
+              className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none"
+              required
+            />
+          </div>
+          
+          {/* Password Fields */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <label className="block text-xs font-medium text-gray-700 mb-1">Password</label>
+              <input
+                type="password"
+                name="password"
+                value={formData.password}
+                onChange={handleChange}
+                className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none"
+                required
               />
             </div>
-          </div>
-          
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Role</label>
-            <select
-              name="role"
-              value={formData.role}
-              onChange={handleChange}
-              className="input-field"
-              required
-            >
-              <option value="student">Student</option>
-              <option value="lecturer">Lecturer</option>
-            </select>
-            <p className="text-xs text-gray-500 mt-1">
-              {formData.role === 'lecturer' ? 'Lecturer accounts require admin approval.' : 'Students can register directly.'}
-            </p>
-          </div>
-          
-          {formData.role === 'student' && (
-            <>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Matriculation Number</label>
-                <input
-                  type="text"
-                  name="matric_no"
-                  value={formData.matric_no}
-                  onChange={handleChange}
-                  placeholder="e.g., U21/01/12345"
-                  className="input-field"
-                  required
-                />
-              </div>
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Department</label>
-                  <select
-                    name="department_id"
-                    value={formData.department_id}
-                    onChange={handleChange}
-                    className="input-field"
-                    required
-                  >
-                    <option value="">Select Department</option>
-                    {departments.map(dept => (
-                      <option key={dept.id} value={dept.id}>{dept.name}</option>
-                    ))}
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Current Level</label>
-                  <select
-                    name="level_id"
-                    value={formData.level_id}
-                    onChange={handleChange}
-                    className="input-field"
-                    required
-                  >
-                    <option value="">Select Level</option>
-                    {levels.map(level => (
-                      <option key={level.id} value={level.id}>{level.level} Level</option>
-                    ))}
-                  </select>
-                </div>
-              </div>
-              
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Admission Year</label>
-                <input
-                  type="number"
-                  name="admission_year"
-                  value={formData.admission_year}
-                  onChange={handleChange}
-                  min="2015"
-                  max={new Date().getFullYear()}
-                  className="input-field"
-                  required
-                />
-              </div>
-            </>
-          )}
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Password</label>
-              <div className="relative">
-                <FiLock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={16} />
-                <input
-                  type="password"
-                  name="password"
-                  value={formData.password}
-                  onChange={handleChange}
-                  className="input-field pl-10"
-                  required
-                />
-              </div>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Confirm Password</label>
-              <div className="relative">
-                <FiLock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={16} />
-                <input
-                  type="password"
-                  name="password2"
-                  value={formData.password2}
-                  onChange={handleChange}
-                  className="input-field pl-10"
-                  required
-                />
-              </div>
+              <label className="block text-xs font-medium text-gray-700 mb-1">Confirm Password</label>
+              <input
+                type="password"
+                name="password2"
+                value={formData.password2}
+                onChange={handleChange}
+                className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none"
+                required
+              />
             </div>
           </div>
           
           <button
             type="submit"
             disabled={loading}
-            className="btn-primary w-full flex items-center justify-center space-x-2"
+            className="w-full py-2.5 bg-green-600 hover:bg-green-700 text-white font-medium rounded-lg text-sm transition duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {loading ? (
-              <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+              <div className="flex items-center justify-center">
+                <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+                <span className="ml-2">Creating account...</span>
+              </div>
             ) : (
-              <FiUserPlus size={18} />
+              'Create Account'
             )}
-            <span>Register</span>
           </button>
         </form>
         
         <div className="mt-6 text-center">
-          <Link to="/login" className="text-sm text-primary-600 hover:text-primary-700 flex items-center justify-center space-x-1">
-            <FiArrowLeft size={14} />
-            <span>Already have an account? Login</span>
+          <Link to="/login" className="text-sm text-green-600 hover:text-green-700 font-medium">
+            Already have an account? Login
           </Link>
         </div>
       </div>

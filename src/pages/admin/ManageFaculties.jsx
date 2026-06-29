@@ -3,7 +3,7 @@ import { academicsAPI } from '../../api/academics';
 import LoadingSpinner from '../../components/common/LoadingSpinner';
 import Alert from '../../components/common/Alert';
 import Modal from '../../components/common/Modal';
-import { FiPlus, FiEdit, FiTrash2, FiGrid } from 'react-icons/fi';
+import { FiPlus, FiEdit, FiTrash2, FiGrid, FiFolder } from 'react-icons/fi';
 
 const ManageFaculties = () => {
   const [loading, setLoading] = useState(true);
@@ -140,7 +140,6 @@ const ManageFaculties = () => {
     setFormData({ name: '', code: '' });
   };
 
-  // Group departments by faculty safely
   const facultiesWithDepts = faculties.map(faculty => ({
     ...faculty,
     departments: departments.filter(d => d && d.faculty === faculty.id)
@@ -149,28 +148,26 @@ const ManageFaculties = () => {
   if (loading) return <LoadingSpinner />;
 
   return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
+    <div className="space-y-3 sm:space-y-6 px-2 sm:px-0">
+      {/* Header - Stack on mobile */}
+      <div className="flex flex-col gap-2 sm:flex-row sm:justify-between sm:items-center">
         <div>
-          <h1 className="text-2xl font-bold text-gray-800">Manage Faculties & Departments</h1>
-          <p className="text-gray-500">Organize academic structure</p>
+          <h1 className="text-base sm:text-2xl font-bold text-gray-800">Manage Faculties</h1>
+          <p className="text-[10px] sm:text-sm text-gray-500">Organize academic structure</p>
         </div>
-        <div className="flex space-x-3">
+        <div className="flex flex-col gap-1.5 sm:flex-row sm:gap-2 w-full sm:w-auto">
           <button
-            onClick={() => {
-              resetForm();
-              setShowModal(true);
-            }}
-            className="btn-primary flex items-center space-x-2"
+            onClick={() => { resetForm(); setShowModal(true); }}
+            className="inline-flex items-center justify-center space-x-1.5 px-3 py-1.5 sm:px-4 sm:py-2 bg-green-600 hover:bg-green-700 text-white text-[10px] sm:text-sm font-medium rounded-lg transition w-full sm:w-auto"
           >
-            <FiPlus size={18} />
+            <FiPlus size={12} className="sm:size-4" />
             <span>Add Faculty</span>
           </button>
           <button
             onClick={() => setShowDeptModal(true)}
-            className="btn-secondary flex items-center space-x-2"
+            className="inline-flex items-center justify-center space-x-1.5 px-3 py-1.5 sm:px-4 sm:py-2 border border-gray-300 hover:border-green-500 text-gray-700 hover:text-green-600 text-[10px] sm:text-sm font-medium rounded-lg transition w-full sm:w-auto"
           >
-            <FiPlus size={18} />
+            <FiPlus size={12} className="sm:size-4" />
             <span>Add Department</span>
           </button>
         </div>
@@ -180,52 +177,63 @@ const ManageFaculties = () => {
         <Alert type={message.type} message={message.text} onClose={() => setMessage(null)} />
       )}
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      {/* Faculty Cards - 1 col mobile, 2 col tablet, 2 col desktop */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-2 sm:gap-4">
         {facultiesWithDepts.map((faculty) => (
-          <div key={faculty.id} className="card">
-            <div className="flex justify-between items-start mb-4 pb-3 border-b">
-              <div className="flex items-center space-x-3">
-                <div className="p-2 bg-primary-100 rounded-lg">
-                  <FiGrid className="text-primary-600 text-xl" />
+          <div key={faculty.id} className="bg-white rounded-xl shadow-sm border border-gray-100 p-3 sm:p-5 hover:shadow-md transition-shadow duration-200">
+            {/* Faculty Header */}
+            <div className="flex items-start justify-between gap-2 pb-2 sm:pb-3 border-b border-gray-100">
+              <div className="flex items-center space-x-2 sm:space-x-3 min-w-0 flex-1">
+                <div className="p-1.5 sm:p-2 bg-green-50 rounded-lg flex-shrink-0">
+                  <FiGrid className="text-green-600 text-sm sm:text-xl" />
                 </div>
-                <div>
-                  <h2 className="text-lg font-semibold text-gray-800">{faculty.name}</h2>
-                  <p className="text-sm text-gray-500">Code: {faculty.code}</p>
+                <div className="min-w-0 flex-1">
+                  <h2 className="text-xs sm:text-lg font-semibold text-gray-800 truncate">{faculty.name}</h2>
+                  <p className="text-[9px] sm:text-sm text-gray-500">Code: {faculty.code}</p>
                 </div>
               </div>
-              <div className="flex space-x-2">
+              <div className="flex items-center space-x-0.5 sm:space-x-1 flex-shrink-0">
                 <button
                   onClick={() => handleEdit(faculty)}
-                  className="p-1 text-green-600 hover:bg-green-50 rounded"
+                  className="p-1.5 sm:p-2 text-gray-400 hover:text-green-600 hover:bg-green-50 rounded-lg transition"
+                  title="Edit"
                 >
-                  <FiEdit size={16} />
+                  <FiEdit size={12} className="sm:size-4" />
                 </button>
                 <button
                   onClick={() => handleDelete(faculty)}
-                  className="p-1 text-red-600 hover:bg-red-50 rounded"
+                  className="p-1.5 sm:p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition"
+                  title="Delete"
                 >
-                  <FiTrash2 size={16} />
+                  <FiTrash2 size={12} className="sm:size-4" />
                 </button>
               </div>
             </div>
 
-            <div>
-              <h3 className="text-sm font-semibold text-gray-600 mb-3">Departments</h3>
+            {/* Departments */}
+            <div className="mt-2 sm:mt-3">
+              <h3 className="text-[8px] sm:text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                Departments ({faculty.departments.length})
+              </h3>
               {faculty.departments.length === 0 ? (
-                <p className="text-sm text-gray-400">No departments yet</p>
+                <p className="text-[9px] sm:text-sm text-gray-400 py-1.5 sm:py-2">No departments yet</p>
               ) : (
-                <div className="space-y-2">
+                <div className="space-y-1 sm:space-y-1.5 mt-1 sm:mt-2">
                   {faculty.departments.map((dept) => (
-                    <div key={dept.id} className="flex justify-between items-center p-2 bg-gray-50 rounded-lg">
-                      <div>
-                        <p className="font-medium text-sm">{dept.name}</p>
-                        <p className="text-xs text-gray-500">Code: {dept.code}</p>
+                    <div key={dept.id} className="flex items-center justify-between p-1.5 sm:p-2 bg-gray-50 rounded-lg hover:bg-gray-100 transition gap-1">
+                      <div className="flex items-center space-x-1.5 sm:space-x-2 min-w-0 flex-1">
+                        <FiFolder size={10} className="sm:size-3 text-gray-400 flex-shrink-0" />
+                        <div className="min-w-0 flex-1">
+                          <p className="text-[10px] sm:text-xs font-medium text-gray-700 truncate">{dept.name}</p>
+                          <p className="text-[8px] sm:text-[10px] text-gray-400">Code: {dept.code}</p>
+                        </div>
                       </div>
                       <button
                         onClick={() => handleDeleteDept(dept)}
-                        className="p-1 text-red-600 hover:bg-red-50 rounded"
+                        className="p-1 sm:p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition flex-shrink-0"
+                        title="Delete"
                       >
-                        <FiTrash2 size={14} />
+                        <FiTrash2 size={10} className="sm:size-3" />
                       </button>
                     </div>
                   ))}
@@ -234,66 +242,82 @@ const ManageFaculties = () => {
             </div>
           </div>
         ))}
+
+        {/* Empty State */}
+        {facultiesWithDepts.length === 0 && (
+          <div className="col-span-full bg-white rounded-xl shadow-sm border border-gray-100 p-4 sm:p-8 text-center">
+            <FiGrid className="mx-auto text-gray-300 text-2xl sm:text-3xl mb-2 sm:mb-3" />
+            <p className="text-sm sm:text-base text-gray-500">No faculties found</p>
+            <p className="text-xs sm:text-sm text-gray-400 mt-1">Click "Add Faculty" to create one</p>
+          </div>
+        )}
       </div>
 
+      {/* Add/Edit Faculty Modal */}
       <Modal
         isOpen={showModal}
         onClose={() => setShowModal(false)}
         title={editingFaculty ? 'Edit Faculty' : 'Add New Faculty'}
+        size="md"
       >
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-3 sm:space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Faculty Name</label>
+            <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">Faculty Name</label>
             <input
               type="text"
               name="name"
               value={formData.name}
               onChange={handleInputChange}
               placeholder="e.g., Faculty of Engineering"
-              className="input-field"
+              className="w-full px-3 py-1.5 sm:py-2 border border-gray-200 rounded-lg text-xs sm:text-sm focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none"
               required
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Faculty Code</label>
+            <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">Faculty Code</label>
             <input
               type="text"
               name="code"
               value={formData.code}
               onChange={handleInputChange}
               placeholder="e.g., ENG"
-              className="input-field"
+              className="w-full px-3 py-1.5 sm:py-2 border border-gray-200 rounded-lg text-xs sm:text-sm focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none"
               required
             />
           </div>
-          <div className="flex justify-end space-x-3 pt-4">
+          <div className="flex justify-end space-x-3 pt-3 sm:pt-4 border-t border-gray-100">
             <button
               type="button"
               onClick={() => setShowModal(false)}
-              className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
+              className="px-3 sm:px-4 py-1.5 sm:py-2 border border-gray-200 rounded-lg text-xs sm:text-sm font-medium text-gray-600 hover:bg-gray-50 transition"
             >
               Cancel
             </button>
-            <button type="submit" className="btn-primary">
+            <button
+              type="submit"
+              className="px-3 sm:px-4 py-1.5 sm:py-2 bg-green-600 hover:bg-green-700 text-white text-xs sm:text-sm font-medium rounded-lg transition"
+            >
               {editingFaculty ? 'Update' : 'Create'}
             </button>
           </div>
         </form>
       </Modal>
 
+      {/* Add Department Modal */}
       <Modal
         isOpen={showDeptModal}
         onClose={() => setShowDeptModal(false)}
         title="Add New Department"
+        size="md"
       >
-        <form onSubmit={handleDeptSubmit} className="space-y-4">
+        <form onSubmit={handleDeptSubmit} className="space-y-3 sm:space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Faculty</label>
+            <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">Faculty</label>
             <select
               name="faculty"
               value={deptFormData.faculty}
               onChange={handleDeptInputChange}
-              className="input-field"
+              className="w-full px-3 py-1.5 sm:py-2 border border-gray-200 rounded-lg text-xs sm:text-sm focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none bg-white"
               required
             >
               <option value="">Select Faculty</option>
@@ -303,38 +327,43 @@ const ManageFaculties = () => {
             </select>
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Department Name</label>
+            <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">Department Name</label>
             <input
               type="text"
               name="name"
               value={deptFormData.name}
               onChange={handleDeptInputChange}
               placeholder="e.g., Computer Science"
-              className="input-field"
+              className="w-full px-3 py-1.5 sm:py-2 border border-gray-200 rounded-lg text-xs sm:text-sm focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none"
               required
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Department Code</label>
+            <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">Department Code</label>
             <input
               type="text"
               name="code"
               value={deptFormData.code}
               onChange={handleDeptInputChange}
               placeholder="e.g., CSC"
-              className="input-field"
+              className="w-full px-3 py-1.5 sm:py-2 border border-gray-200 rounded-lg text-xs sm:text-sm focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none"
               required
             />
           </div>
-          <div className="flex justify-end space-x-3 pt-4">
+          <div className="flex justify-end space-x-3 pt-3 sm:pt-4 border-t border-gray-100">
             <button
               type="button"
               onClick={() => setShowDeptModal(false)}
-              className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
+              className="px-3 sm:px-4 py-1.5 sm:py-2 border border-gray-200 rounded-lg text-xs sm:text-sm font-medium text-gray-600 hover:bg-gray-50 transition"
             >
               Cancel
             </button>
-            <button type="submit" className="btn-primary">Create</button>
+            <button
+              type="submit"
+              className="px-3 sm:px-4 py-1.5 sm:py-2 bg-green-600 hover:bg-green-700 text-white text-xs sm:text-sm font-medium rounded-lg transition"
+            >
+              Create Department
+            </button>
           </div>
         </form>
       </Modal>

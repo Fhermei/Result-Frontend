@@ -3,8 +3,8 @@ import { useAuth } from '../../context/AuthContext';
 import { coursesAPI } from '../../api/courses';
 import { resultsAPI } from '../../api/results';
 import LoadingSpinner from '../../components/common/LoadingSpinner';
-import { FiBookOpen, FiUpload, FiUsers, FiCheckCircle } from 'react-icons/fi';
 import { Link } from 'react-router-dom';
+import { FiBookOpen, FiUpload, FiUsers, FiCheckCircle, FiPlus } from 'react-icons/fi';
 
 const LecturerDashboard = () => {
   const { user } = useAuth();
@@ -31,7 +31,6 @@ const LecturerDashboard = () => {
       const courses = coursesRes.data || [];
       setRecentCourses(courses.slice(0, 5));
       
-      // Calculate unique students
       const resultsData = resultsRes.data || [];
       const uniqueStudents = new Set(resultsData.map(r => r.student));
       const publishedResults = resultsData.filter(r => r.is_published).length;
@@ -53,30 +52,35 @@ const LecturerDashboard = () => {
   if (loading) return <LoadingSpinner />;
 
   const statCards = [
-    { title: 'My Courses', value: stats.courses, icon: FiBookOpen, color: 'text-blue-600', bg: 'bg-blue-100', link: '/lecturer/courses' },
-    { title: 'Students', value: stats.students, icon: FiUsers, color: 'text-green-600', bg: 'bg-green-100', link: '/lecturer/results' },
-    { title: 'Results Uploaded', value: stats.resultsUploaded, icon: FiUpload, color: 'text-purple-600', bg: 'bg-purple-100', link: '/lecturer/results' },
-    { title: 'Published', value: stats.publishedResults, icon: FiCheckCircle, color: 'text-orange-600', bg: 'bg-orange-100', link: '/lecturer/results' },
+    { title: 'My Courses', value: stats.courses, icon: FiBookOpen, link: '/lecturer/courses' },
+    { title: 'Students', value: stats.students, icon: FiUsers, link: '/lecturer/results' },
+    { title: 'Results Uploaded', value: stats.resultsUploaded, icon: FiUpload, link: '/lecturer/results' },
+    { title: 'Published', value: stats.publishedResults, icon: FiCheckCircle, link: '/lecturer/results' },
   ];
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-3 sm:space-y-6 px-2 sm:px-0">
+      {/* Header */}
       <div>
-        <h1 className="text-2xl font-bold text-gray-800">Lecturer Dashboard</h1>
-        <p className="text-gray-500">Welcome back, {user?.full_name}</p>
+        <h1 className="text-base sm:text-2xl font-bold text-gray-800">Lecturer Dashboard</h1>
+        <p className="text-[10px] sm:text-sm text-gray-500 mt-0.5">Welcome back, {user?.full_name}</p>
       </div>
 
-      {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      {/* Stats Cards - 2x2 on mobile, 4 on desktop */}
+      <div className="grid grid-cols-2 gap-2 sm:gap-4">
         {statCards.map((stat, index) => (
-          <Link to={stat.link} key={index} className="card hover:shadow-lg transition-shadow">
+          <Link
+            key={index}
+            to={stat.link}
+            className="bg-white rounded-xl shadow-sm border border-gray-100 p-3 sm:p-4 hover:shadow-md transition-all duration-200 hover:border-green-200"
+          >
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-500">{stat.title}</p>
-                <p className="text-2xl font-bold text-gray-800">{stat.value}</p>
+                <p className="text-[8px] sm:text-xs text-gray-500 uppercase tracking-wider">{stat.title}</p>
+                <p className="text-lg sm:text-2xl font-bold text-gray-800 mt-0.5">{stat.value}</p>
               </div>
-              <div className={`${stat.bg} p-3 rounded-full`}>
-                <stat.icon className={`${stat.color} text-2xl`} />
+              <div className="p-2 bg-green-50 rounded-lg">
+                <stat.icon className="text-green-600 text-sm sm:text-xl" />
               </div>
             </div>
           </Link>
@@ -84,46 +88,54 @@ const LecturerDashboard = () => {
       </div>
 
       {/* Quick Actions */}
-      <div className="card">
-        <h2 className="text-lg font-semibold text-gray-800 mb-4">Quick Actions</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-3 sm:p-5">
+        <h2 className="text-xs sm:text-lg font-semibold text-gray-800 mb-3 sm:mb-4">Quick Actions</h2>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-4">
           <Link
             to="/lecturer/upload"
-            className="flex items-center justify-center space-x-3 p-4 bg-primary-50 rounded-lg hover:bg-primary-100 transition"
+            className="flex items-center justify-center space-x-2 sm:space-x-3 p-3 sm:p-4 bg-green-50 rounded-lg hover:bg-green-100 transition border border-green-100"
           >
-            <FiUpload className="text-primary-600 text-xl" />
-            <span className="font-medium text-primary-700">Upload New Results</span>
+            <FiUpload className="text-green-600 text-sm sm:text-xl" />
+            <span className="text-xs sm:text-base font-medium text-green-700">Upload Results</span>
           </Link>
           <Link
             to="/lecturer/courses"
-            className="flex items-center justify-center space-x-3 p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition"
+            className="flex items-center justify-center space-x-2 sm:space-x-3 p-3 sm:p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition border border-gray-100"
           >
-            <FiBookOpen className="text-gray-600 text-xl" />
-            <span className="font-medium text-gray-700">View My Courses</span>
+            <FiBookOpen className="text-gray-600 text-sm sm:text-xl" />
+            <span className="text-xs sm:text-base font-medium text-gray-700">My Courses</span>
           </Link>
         </div>
       </div>
 
       {/* Recent Courses */}
       {recentCourses.length > 0 && (
-        <div className="card">
-          <h2 className="text-lg font-semibold text-gray-800 mb-4">My Courses</h2>
-          <div className="space-y-3">
+        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-3 sm:p-5">
+          <div className="flex justify-between items-center mb-3 sm:mb-4">
+            <h2 className="text-xs sm:text-lg font-semibold text-gray-800">My Courses</h2>
+            <Link
+              to="/lecturer/courses"
+              className="text-[10px] sm:text-sm text-green-600 hover:text-green-700 font-medium flex items-center"
+            >
+              View All <FiPlus size={12} className="sm:size-4 ml-1" />
+            </Link>
+          </div>
+          <div className="space-y-2 sm:space-y-3">
             {recentCourses.map((course) => (
-              <div key={course.id} className="flex justify-between items-center p-3 border rounded-lg">
-                <div>
-                  <div className="flex items-center space-x-2 mb-1">
-                    <span className="font-mono text-sm text-gray-500">{course.code}</span>
-                    <span className="text-xs px-2 py-1 bg-gray-100 rounded">{course.credit_unit} Units</span>
+              <div key={course.id} className="flex flex-col sm:flex-row sm:justify-between sm:items-center p-3 bg-gray-50 rounded-lg border border-gray-100 hover:border-green-200 transition gap-2 sm:gap-0">
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center space-x-2 mb-0.5">
+                    <span className="font-mono text-[10px] sm:text-sm text-gray-500">{course.code}</span>
+                    <span className="text-[8px] sm:text-xs px-1.5 sm:px-2 py-0.5 bg-gray-200 text-gray-600 rounded-full font-medium">{course.credit_unit} units</span>
                   </div>
-                  <h3 className="font-medium text-gray-800">{course.title}</h3>
-                  <p className="text-sm text-gray-500">
-                    {course.department_name} | Level {course.level_value}
+                  <h3 className="text-xs sm:text-base font-medium text-gray-800 truncate">{course.title}</h3>
+                  <p className="text-[8px] sm:text-sm text-gray-500">
+                    {course.department_name} • Level {course.level_value}
                   </p>
                 </div>
                 <Link
                   to={`/lecturer/upload?course=${course.id}`}
-                  className="px-3 py-1 text-sm bg-primary-600 text-white rounded hover:bg-primary-700"
+                  className="text-[10px] sm:text-sm px-3 sm:px-4 py-1.5 sm:py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition text-center whitespace-nowrap"
                 >
                   Upload Results
                 </Link>

@@ -5,7 +5,10 @@ import { authAPI } from '../../api/auth';
 import LoadingSpinner from '../../components/common/LoadingSpinner';
 import Alert from '../../components/common/Alert';
 import Modal from '../../components/common/Modal';
-import { FiPlus, FiEdit, FiTrash2, FiEye, FiSearch, FiChevronLeft, FiChevronRight } from 'react-icons/fi';
+import { 
+  FiPlus, FiEdit, FiTrash2, FiEye, FiSearch, 
+  FiChevronLeft, FiChevronRight, FiBookOpen, FiUser
+} from 'react-icons/fi';
 
 const ManageCourses = () => {
   const [loading, setLoading] = useState(true);
@@ -56,7 +59,6 @@ const ManageCourses = () => {
       if (filterLevel) params.level = filterLevel;
       
       const response = await coursesAPI.getCourses(params);
-      console.log('Courses response:', response.data);
       
       if (response.data && response.data.results) {
         setCourses(response.data.results);
@@ -192,20 +194,18 @@ const ManageCourses = () => {
   if (loading && courses.length === 0) return <LoadingSpinner />;
 
   return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
+    <div className="space-y-3 sm:space-y-6 px-2 sm:px-0">
+      {/* Header */}
+      <div className="flex flex-col gap-2 sm:flex-row sm:justify-between sm:items-center">
         <div>
-          <h1 className="text-2xl font-bold text-gray-800">Manage Courses</h1>
-          <p className="text-gray-500">Add, edit, and manage academic courses</p>
+          <h1 className="text-base sm:text-2xl font-bold text-gray-800">Manage Courses</h1>
+          <p className="text-[10px] sm:text-sm text-gray-500">Add, edit, and manage academic courses</p>
         </div>
         <button
-          onClick={() => {
-            resetForm();
-            setShowModal(true);
-          }}
-          className="btn-primary flex items-center space-x-2"
+          onClick={() => { resetForm(); setShowModal(true); }}
+          className="inline-flex items-center justify-center space-x-1.5 px-3 py-1.5 sm:px-4 sm:py-2 bg-green-600 hover:bg-green-700 text-white text-[10px] sm:text-sm font-medium rounded-lg transition w-full sm:w-auto"
         >
-          <FiPlus size={18} />
+          <FiPlus size={12} className="sm:size-4" />
           <span>Add Course</span>
         </button>
       </div>
@@ -215,22 +215,20 @@ const ManageCourses = () => {
       )}
 
       {/* Search and Filters */}
-      <div className="card">
-        <div className="flex flex-wrap gap-4">
-          <div className="flex-1 min-w-[200px]">
-            <div className="relative">
-              <FiSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
-              <input
-                type="text"
-                placeholder="Search by course code or title..."
-                value={searchTerm}
-                onChange={(e) => {
-                  setSearchTerm(e.target.value);
-                  setCurrentPage(1);
-                }}
-                className="input-field pl-10"
-              />
-            </div>
+      <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-3 sm:p-4">
+        <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
+          <div className="flex-1 relative">
+            <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={14} />
+            <input
+              type="text"
+              placeholder="Search by course code or title..."
+              value={searchTerm}
+              onChange={(e) => {
+                setSearchTerm(e.target.value);
+                setCurrentPage(1);
+              }}
+              className="w-full pl-8 pr-3 py-1.5 sm:py-2 border border-gray-200 rounded-lg text-xs sm:text-sm focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none"
+            />
           </div>
           <select
             value={filterDepartment}
@@ -238,7 +236,7 @@ const ManageCourses = () => {
               setFilterDepartment(e.target.value);
               setCurrentPage(1);
             }}
-            className="input-field w-48"
+            className="px-3 py-1.5 sm:py-2 border border-gray-200 rounded-lg text-xs sm:text-sm focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none bg-white w-full sm:w-40"
           >
             <option value="">All Departments</option>
             {departments.map(dept => (
@@ -251,7 +249,7 @@ const ManageCourses = () => {
               setFilterLevel(e.target.value);
               setCurrentPage(1);
             }}
-            className="input-field w-32"
+            className="px-3 py-1.5 sm:py-2 border border-gray-200 rounded-lg text-xs sm:text-sm focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none bg-white w-full sm:w-32"
           >
             <option value="">All Levels</option>
             {levels.map(level => (
@@ -261,7 +259,7 @@ const ManageCourses = () => {
           {(searchTerm || filterDepartment || filterLevel) && (
             <button
               onClick={clearFilters}
-              className="px-4 py-2 text-gray-600 hover:text-gray-800 border rounded-lg"
+              className="px-3 py-1.5 sm:px-4 sm:py-2 text-gray-600 hover:text-gray-800 border border-gray-200 rounded-lg text-xs sm:text-sm hover:bg-gray-50 transition whitespace-nowrap"
             >
               Clear Filters
             </button>
@@ -269,77 +267,77 @@ const ManageCourses = () => {
         </div>
       </div>
 
-      {/* Courses Table */}
-      <div className="card">
+      {/* ─── DESKTOP TABLE ──────────────────────────────────────────────────── */}
+      <div className="hidden md:block bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead className="bg-gray-50">
               <tr>
-                <th className="px-4 py-3 text-left text-sm font-semibold text-gray-600">S/N</th>
-                <th className="px-4 py-3 text-left text-sm font-semibold text-gray-600">Course Code</th>
-                <th className="px-4 py-3 text-left text-sm font-semibold text-gray-600">Course Title</th>
-                <th className="px-4 py-3 text-center text-sm font-semibold text-gray-600">Credit Unit</th>
-                <th className="px-4 py-3 text-left text-sm font-semibold text-gray-600">Department</th>
-                <th className="px-4 py-3 text-center text-sm font-semibold text-gray-600">Level</th>
-                <th className="px-4 py-3 text-left text-sm font-semibold text-gray-600">Lecturer</th>
-                <th className="px-4 py-3 text-center text-sm font-semibold text-gray-600">Actions</th>
+                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">S/N</th>
+                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Code</th>
+                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Title</th>
+                <th className="px-4 py-3 text-center text-xs font-semibold text-gray-500 uppercase tracking-wider">Units</th>
+                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Department</th>
+                <th className="px-4 py-3 text-center text-xs font-semibold text-gray-500 uppercase tracking-wider">Level</th>
+                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Lecturer</th>
+                <th className="px-4 py-3 text-center text-xs font-semibold text-gray-500 uppercase tracking-wider">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-200">
+            <tbody className="divide-y divide-gray-100">
               {courses.length === 0 ? (
                 <tr>
-                  <td colSpan="8" className="px-4 py-8 text-center text-gray-500">
+                  <td colSpan="8" className="text-center py-8 text-gray-400 text-sm">
                     No courses found. { (searchTerm || filterDepartment || filterLevel) ? 'Try changing your filters.' : 'Click "Add Course" to create one.' }
                   </td>
                 </tr>
               ) : (
                 courses.map((course, index) => (
-                  <tr key={course.id} className="hover:bg-gray-50">
-                    <td className="px-4 py-3 text-sm text-gray-600">
+                  <tr key={course.id} className="hover:bg-gray-50 transition">
+                    <td className="px-4 py-3 text-sm text-gray-500">
                       {(currentPage - 1) * 20 + index + 1}
                     </td>
-                    <td className="px-4 py-3 text-sm font-mono font-medium text-gray-900">
+                    <td className="px-4 py-3 text-sm font-mono font-medium text-gray-800">
                       {course.code}
                     </td>
-                    <td className="px-4 py-3 text-sm text-gray-700">
+                    <td className="px-4 py-3 text-sm text-gray-700 truncate max-w-[150px]">
                       {course.title}
                     </td>
-                    <td className="px-4 py-3 text-sm text-center">
-                      <span className="inline-block px-2 py-1 bg-primary-100 text-primary-700 rounded text-xs font-semibold">
-                        {course.credit_unit} units
+                    <td className="px-4 py-3 text-center">
+                      <span className="inline-block px-2.5 py-0.5 bg-green-100 text-green-700 rounded-full text-xs font-medium">
+                        {course.credit_unit}
                       </span>
                     </td>
                     <td className="px-4 py-3 text-sm text-gray-600">
                       {course.department_name}
                     </td>
-                    <td className="px-4 py-3 text-sm text-center">
-                      {course.level_value} Level
+                    <td className="px-4 py-3 text-center text-sm">
+                      {course.level_value}L
                     </td>
-                    <td className="px-4 py-3 text-sm text-gray-600">
-                      {course.lecturer_name || 'Not Assigned'}
+                    <td className="px-4 py-3 text-sm text-gray-600 truncate max-w-[120px]">
+                      {course.lecturer_name || <span className="text-gray-400">Not Assigned</span>}
                     </td>
                     <td className="px-4 py-3 text-center">
-                      <div className="flex justify-center space-x-2">
+                      <div className="flex items-center justify-center space-x-1">
                         <button
                           onClick={() => handleView(course)}
-                          className="p-1 text-blue-600 hover:bg-blue-50 rounded"
+                          className="p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition"
                           title="View"
                         >
-                          <FiEye size={16} />
+                          <FiEye size={14} />
                         </button>
                         <button
                           onClick={() => handleEdit(course)}
-                          className="p-1 text-green-600 hover:bg-green-50 rounded"
+                          className="p-1.5 text-gray-400 hover:text-green-600 hover:bg-green-50 rounded-lg transition"
                           title="Edit"
                         >
-                          <FiEdit size={16} />
+                          <FiEdit size={14} />
                         </button>
                         <button
                           onClick={() => handleDelete(course)}
-                          className="p-1 text-red-600 hover:bg-red-50 rounded"
+                          className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition"
                           title="Delete"
                         >
-                          <FiTrash2 size={16} />
+                          <FiTrash2 size={14} />
                         </button>
                       </div>
                     </td>
@@ -352,27 +350,109 @@ const ManageCourses = () => {
 
         {/* Pagination */}
         {totalPages > 1 && (
-          <div className="flex justify-between items-center mt-4 pt-4 border-t">
-            <div className="text-sm text-gray-500">
-              Showing {courses.length} of {totalCourses} courses
-            </div>
-            <div className="flex space-x-2">
+          <div className="flex flex-col sm:flex-row justify-between items-center gap-3 px-4 py-3 border-t border-gray-100">
+            <div className="text-sm text-gray-500">Showing {courses.length} of {totalCourses} courses</div>
+            <div className="flex items-center space-x-2">
               <button
                 onClick={() => goToPage(currentPage - 1)}
                 disabled={currentPage === 1}
-                className="px-3 py-1 border rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="p-2 text-gray-400 hover:text-gray-600 disabled:opacity-50 disabled:cursor-not-allowed transition"
               >
-                <FiChevronLeft />
+                <FiChevronLeft size={16} />
               </button>
-              <span className="px-3 py-1">
-                Page {currentPage} of {totalPages}
-              </span>
+              <span className="text-sm text-gray-600">Page {currentPage} of {totalPages}</span>
               <button
                 onClick={() => goToPage(currentPage + 1)}
                 disabled={currentPage === totalPages}
-                className="px-3 py-1 border rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="p-2 text-gray-400 hover:text-gray-600 disabled:opacity-50 disabled:cursor-not-allowed transition"
               >
-                <FiChevronRight />
+                <FiChevronRight size={16} />
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* ─── MOBILE CARD VIEW ────────────────────────────────────────────── */}
+      <div className="md:hidden space-y-2">
+        {courses.length === 0 ? (
+          <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 text-center text-gray-400 text-sm">
+            No courses found
+          </div>
+        ) : (
+          courses.map((course, index) => (
+            <div key={course.id} className="bg-white rounded-xl shadow-sm border border-gray-100 p-3">
+              <div className="flex items-start justify-between">
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center space-x-2">
+                    <FiBookOpen className="text-green-600 text-sm flex-shrink-0" />
+                    <span className="font-mono text-xs font-semibold text-gray-800">{course.code}</span>
+                    <span className="text-[8px] px-1.5 py-0.5 bg-green-100 text-green-700 rounded-full font-medium">{course.credit_unit} units</span>
+                  </div>
+                  <p className="text-xs font-medium text-gray-700 truncate mt-0.5">{course.title}</p>
+                  <div className="flex flex-wrap items-center gap-1 mt-1">
+                    <span className="text-[8px] text-gray-500">{course.department_name}</span>
+                    <span className="text-[8px] text-gray-300">•</span>
+                    <span className="text-[8px] text-gray-500">{course.level_value}L</span>
+                    {course.lecturer_name && (
+                      <>
+                        <span className="text-[8px] text-gray-300">•</span>
+                        <span className="text-[8px] text-gray-500 flex items-center">
+                          <FiUser size={8} className="mr-0.5" /> {course.lecturer_name}
+                        </span>
+                      </>
+                    )}
+                  </div>
+                </div>
+                <div className="flex items-center space-x-0.5 flex-shrink-0 ml-2">
+                  <button
+                    onClick={() => handleView(course)}
+                    className="p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition"
+                    title="View"
+                  >
+                    <FiEye size={12} />
+                  </button>
+                  <button
+                    onClick={() => handleEdit(course)}
+                    className="p-1.5 text-gray-400 hover:text-green-600 hover:bg-green-50 rounded-lg transition"
+                    title="Edit"
+                  >
+                    <FiEdit size={12} />
+                  </button>
+                  <button
+                    onClick={() => handleDelete(course)}
+                    className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition"
+                    title="Delete"
+                  >
+                    <FiTrash2 size={12} />
+                  </button>
+                </div>
+              </div>
+            </div>
+          ))
+        )}
+
+        {/* Mobile Pagination */}
+        {totalPages > 1 && (
+          <div className="flex justify-between items-center bg-white rounded-xl shadow-sm border border-gray-100 px-3 py-2.5">
+            <div className="text-[10px] text-gray-500">
+              {courses.length} of {totalCourses}
+            </div>
+            <div className="flex items-center space-x-2">
+              <button
+                onClick={() => goToPage(currentPage - 1)}
+                disabled={currentPage === 1}
+                className="p-1.5 text-gray-400 hover:text-gray-600 disabled:opacity-50 disabled:cursor-not-allowed transition"
+              >
+                <FiChevronLeft size={12} />
+              </button>
+              <span className="text-xs text-gray-600">{currentPage} / {totalPages}</span>
+              <button
+                onClick={() => goToPage(currentPage + 1)}
+                disabled={currentPage === totalPages}
+                className="p-1.5 text-gray-400 hover:text-gray-600 disabled:opacity-50 disabled:cursor-not-allowed transition"
+              >
+                <FiChevronRight size={12} />
               </button>
             </div>
           </div>
@@ -386,22 +466,22 @@ const ManageCourses = () => {
         title={editingCourse ? 'Edit Course' : 'Add New Course'}
         size="lg"
       >
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <form onSubmit={handleSubmit} className="space-y-3 sm:space-y-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Course Code *</label>
+              <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">Course Code *</label>
               <input
                 type="text"
                 name="code"
                 value={formData.code}
                 onChange={handleInputChange}
                 placeholder="e.g., CSC101"
-                className="input-field uppercase"
+                className="w-full px-3 py-1.5 sm:py-2 border border-gray-200 rounded-lg text-xs sm:text-sm uppercase focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none"
                 required
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Credit Unit *</label>
+              <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">Credit Unit *</label>
               <input
                 type="number"
                 name="credit_unit"
@@ -409,33 +489,33 @@ const ManageCourses = () => {
                 onChange={handleInputChange}
                 min="1"
                 max="6"
-                className="input-field"
+                className="w-full px-3 py-1.5 sm:py-2 border border-gray-200 rounded-lg text-xs sm:text-sm focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none"
                 required
               />
             </div>
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Course Title *</label>
+            <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">Course Title *</label>
             <input
               type="text"
               name="title"
               value={formData.title}
               onChange={handleInputChange}
               placeholder="e.g., Introduction to Computer Science"
-              className="input-field"
+              className="w-full px-3 py-1.5 sm:py-2 border border-gray-200 rounded-lg text-xs sm:text-sm focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none"
               required
             />
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Department *</label>
+              <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">Department *</label>
               <select
                 name="department"
                 value={formData.department}
                 onChange={handleInputChange}
-                className="input-field"
+                className="w-full px-3 py-1.5 sm:py-2 border border-gray-200 rounded-lg text-xs sm:text-sm focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none bg-white"
                 required
               >
                 <option value="">Select Department</option>
@@ -445,12 +525,12 @@ const ManageCourses = () => {
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Level *</label>
+              <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">Level *</label>
               <select
                 name="level"
                 value={formData.level}
                 onChange={handleInputChange}
-                className="input-field"
+                className="w-full px-3 py-1.5 sm:py-2 border border-gray-200 rounded-lg text-xs sm:text-sm focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none bg-white"
                 required
               >
                 <option value="">Select Level</option>
@@ -461,14 +541,14 @@ const ManageCourses = () => {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Semester *</label>
+              <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">Semester *</label>
               <select
                 name="semester"
                 value={formData.semester}
                 onChange={handleInputChange}
-                className="input-field"
+                className="w-full px-3 py-1.5 sm:py-2 border border-gray-200 rounded-lg text-xs sm:text-sm focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none bg-white"
                 required
               >
                 <option value="">Select Semester</option>
@@ -480,12 +560,12 @@ const ManageCourses = () => {
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Lecturer (Optional)</label>
+              <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">Lecturer (Optional)</label>
               <select
                 name="lecturer"
                 value={formData.lecturer}
                 onChange={handleInputChange}
-                className="input-field"
+                className="w-full px-3 py-1.5 sm:py-2 border border-gray-200 rounded-lg text-xs sm:text-sm focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none bg-white"
               >
                 <option value="">Assign Lecturer</option>
                 {lecturers.map(lec => (
@@ -501,20 +581,23 @@ const ManageCourses = () => {
               name="is_elective"
               checked={formData.is_elective}
               onChange={handleInputChange}
-              className="mr-2 w-4 h-4"
+              className="mr-2 w-3.5 h-3.5 sm:w-4 sm:h-4 text-green-600 rounded focus:ring-green-500"
             />
-            <label className="text-sm font-medium text-gray-700">Elective Course</label>
+            <label className="text-xs sm:text-sm font-medium text-gray-700">Elective Course</label>
           </div>
 
-          <div className="flex justify-end space-x-3 pt-4">
+          <div className="flex justify-end space-x-3 pt-3 sm:pt-4 border-t border-gray-100">
             <button
               type="button"
               onClick={() => setShowModal(false)}
-              className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
+              className="px-3 sm:px-4 py-1.5 sm:py-2 border border-gray-200 rounded-lg text-xs sm:text-sm font-medium text-gray-600 hover:bg-gray-50 transition"
             >
               Cancel
             </button>
-            <button type="submit" className="btn-primary">
+            <button
+              type="submit"
+              className="px-3 sm:px-4 py-1.5 sm:py-2 bg-green-600 hover:bg-green-700 text-white text-xs sm:text-sm font-medium rounded-lg transition"
+            >
               {editingCourse ? 'Update' : 'Create'}
             </button>
           </div>
@@ -529,57 +612,59 @@ const ManageCourses = () => {
         size="md"
       >
         {selectedCourse && (
-          <div className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
+          <div className="space-y-3 sm:space-y-4">
+            <div className="grid grid-cols-2 gap-3 sm:gap-4">
               <div>
-                <label className="text-sm text-gray-500">Course Code</label>
-                <p className="font-mono font-semibold text-lg">{selectedCourse.code}</p>
+                <label className="text-[10px] sm:text-xs text-gray-500 uppercase tracking-wider">Course Code</label>
+                <p className="font-mono font-semibold text-base sm:text-lg">{selectedCourse.code}</p>
               </div>
               <div>
-                <label className="text-sm text-gray-500">Credit Unit</label>
-                <p className="font-semibold text-lg">{selectedCourse.credit_unit}</p>
-              </div>
-            </div>
-            
-            <div>
-              <label className="text-sm text-gray-500">Course Title</label>
-              <p className="font-medium">{selectedCourse.title}</p>
-            </div>
-            
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="text-sm text-gray-500">Department</label>
-                <p>{selectedCourse.department_name}</p>
-              </div>
-              <div>
-                <label className="text-sm text-gray-500">Level</label>
-                <p>{selectedCourse.level_value} Level</p>
-              </div>
-            </div>
-            
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="text-sm text-gray-500">Semester</label>
-                <p>{selectedCourse.semester_name}</p>
-              </div>
-              <div>
-                <label className="text-sm text-gray-500">Course Type</label>
-                <p>{selectedCourse.is_elective ? 'Elective' : 'Core'}</p>
+                <label className="text-[10px] sm:text-xs text-gray-500 uppercase tracking-wider">Credit Unit</label>
+                <p className="font-semibold text-base sm:text-lg">{selectedCourse.credit_unit}</p>
               </div>
             </div>
             
             <div>
-              <label className="text-sm text-gray-500">Lecturer</label>
-              <p>{selectedCourse.lecturer_name || 'Not Assigned'}</p>
+              <label className="text-[10px] sm:text-xs text-gray-500 uppercase tracking-wider">Course Title</label>
+              <p className="font-medium text-sm sm:text-base">{selectedCourse.title}</p>
             </div>
             
-            <div className="pt-4 border-t">
+            <div className="grid grid-cols-2 gap-3 sm:gap-4">
+              <div>
+                <label className="text-[10px] sm:text-xs text-gray-500 uppercase tracking-wider">Department</label>
+                <p className="text-sm">{selectedCourse.department_name}</p>
+              </div>
+              <div>
+                <label className="text-[10px] sm:text-xs text-gray-500 uppercase tracking-wider">Level</label>
+                <p className="text-sm">{selectedCourse.level_value} Level</p>
+              </div>
+            </div>
+            
+            <div className="grid grid-cols-2 gap-3 sm:gap-4">
+              <div>
+                <label className="text-[10px] sm:text-xs text-gray-500 uppercase tracking-wider">Semester</label>
+                <p className="text-sm">{selectedCourse.semester_name}</p>
+              </div>
+              <div>
+                <label className="text-[10px] sm:text-xs text-gray-500 uppercase tracking-wider">Course Type</label>
+                <span className={`inline-block px-2 py-0.5 rounded-full text-xs font-medium ${selectedCourse.is_elective ? 'bg-yellow-100 text-yellow-700' : 'bg-blue-100 text-blue-700'}`}>
+                  {selectedCourse.is_elective ? 'Elective' : 'Core'}
+                </span>
+              </div>
+            </div>
+            
+            <div>
+              <label className="text-[10px] sm:text-xs text-gray-500 uppercase tracking-wider">Lecturer</label>
+              <p className="text-sm">{selectedCourse.lecturer_name || 'Not Assigned'}</p>
+            </div>
+            
+            <div className="pt-3 sm:pt-4 border-t border-gray-100">
               <button
                 onClick={() => {
                   setShowViewModal(false);
                   handleEdit(selectedCourse);
                 }}
-                className="btn-primary w-full"
+                className="w-full py-2 bg-green-600 hover:bg-green-700 text-white text-sm font-medium rounded-lg transition"
               >
                 Edit Course
               </button>

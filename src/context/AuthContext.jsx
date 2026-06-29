@@ -32,29 +32,52 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  const login = async (email, password) => {
+  const login = async (payload) => {
     try {
-      const response = await authAPI.login(email, password);
-      const { access, refresh, role, full_name, user_id } = response.data;
+      console.log('Login payload:', payload);
+      const response = await authAPI.login(payload);
+      console.log('Login response:', response.data);
       
+      const { access, refresh, role, full_name, user_id } = response.data;
+
       localStorage.setItem('access_token', access);
       localStorage.setItem('refresh_token', refresh);
       setToken(access);
-      
-      // Decode token to get user info
+
       const decoded = jwtDecode(access);
       setUser({
         id: user_id,
-        email,
+        email: decoded.email || '',
         role,
         full_name,
-        ...decoded
+        ...decoded,
       });
-      
+
       toast.success(`Welcome back, ${full_name}!`);
       return { success: true, role };
     } catch (error) {
-      const message = error.response?.data?.detail || 'Login failed. Please check your credentials.';
+      console.error('Login error:', error);
+      console.error('Error response:', error.response?.data);
+      
+      // Extract detailed error message
+      let message = 'Login failed. Please check your credentials.';
+      if (error.response?.data) {
+        if (error.response.data.detail) {
+          message = error.response.data.detail;
+        } else if (error.response.data.non_field_errors) {
+          message = error.response.data.non_field_errors[0];
+        } else if (typeof error.response.data === 'string') {
+          message = error.response.data;
+        } else {
+          // Try to get first error message from any field
+          const firstKey = Object.keys(error.response.data)[0];
+          if (firstKey) {
+            const val = error.response.data[firstKey];
+            message = Array.isArray(val) ? val[0] : val;
+          }
+        }
+      }
+      
       toast.error(message);
       return { success: false, error: message };
     }
@@ -69,7 +92,7 @@ export const AuthProvider = ({ children }) => {
         console.error('Logout error:', error);
       }
     }
-    
+
     localStorage.removeItem('access_token');
     localStorage.removeItem('refresh_token');
     setToken(null);
@@ -84,7 +107,8 @@ export const AuthProvider = ({ children }) => {
       toast.success('Password changed successfully');
       return { success: true };
     } catch (error) {
-      const message = error.response?.data?.new_password?.[0] || 'Failed to change password';
+      const message =
+        error.response?.data?.new_password?.[0] || 'Failed to change password';
       toast.error(message);
       return { success: false, error: message };
     }
