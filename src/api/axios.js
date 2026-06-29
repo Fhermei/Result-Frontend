@@ -10,7 +10,7 @@ const axiosInstance = axios.create({
   headers: {
     'Content-Type': 'application/json',
   },
-  timeout: 30000,
+  timeout: 60000, // Increased timeout to 60 seconds
 });
 
 // Request interceptor to add token
@@ -29,23 +29,31 @@ axiosInstance.interceptors.request.use(
 
 // Response interceptor to handle token refresh
 axiosInstance.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    console.log('API Response success:', response.config.url, response.status);
+    return response;
+  },
   async (error) => {
-    const originalRequest = error.config;
+    console.error('API Response error:', error.config?.url, error.response?.status, error.message);
     
-    if (error.response?.status === 401 && !originalRequest._retry) {
-      originalRequest._retry = true;
+    if (error.response?.status === 401 && !error.config._retry) {
+      error.config._retry = true;
       
       try {
         const refreshToken = localStorage.getItem('refresh_token');
+        if (!refreshToken) {
+          throw new Error('No refresh token');
+        }
+        
         const response = await axios.post(`${API_URL}/auth/token/refresh/`, {
           refresh: refreshToken,
         });
         
         localStorage.setItem('access_token', response.data.access);
-        originalRequest.headers.Authorization = `Bearer ${response.data.access}`;
-        return axiosInstance(originalRequest);
+        error.config.headers.Authorization = `Bearer ${response.data.access}`;
+        return axiosInstance(error.config);
       } catch (refreshError) {
+        console.error('Refresh token failed:', refreshError);
         localStorage.removeItem('access_token');
         localStorage.removeItem('refresh_token');
         window.location.href = '/login';

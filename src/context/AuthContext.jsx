@@ -26,7 +26,13 @@ export const AuthProvider = ({ children }) => {
       setUser(response.data);
     } catch (error) {
       console.error('Failed to load user:', error);
-      logout();
+      // If token is invalid, clear it and redirect to login
+      if (error.response?.status === 401) {
+        localStorage.removeItem('access_token');
+        localStorage.removeItem('refresh_token');
+        setToken(null);
+        window.location.href = '/login';
+      }
     } finally {
       setLoading(false);
     }
@@ -47,7 +53,7 @@ export const AuthProvider = ({ children }) => {
       const decoded = jwtDecode(access);
       setUser({
         id: user_id,
-        email: decoded.email || '',
+        email: payload.email || decoded.email || '',
         role,
         full_name,
         ...decoded,
@@ -57,25 +63,15 @@ export const AuthProvider = ({ children }) => {
       return { success: true, role };
     } catch (error) {
       console.error('Login error:', error);
-      console.error('Error response:', error.response?.data);
       
-      // Extract detailed error message
       let message = 'Login failed. Please check your credentials.';
-      if (error.response?.data) {
-        if (error.response.data.detail) {
-          message = error.response.data.detail;
-        } else if (error.response.data.non_field_errors) {
-          message = error.response.data.non_field_errors[0];
-        } else if (typeof error.response.data === 'string') {
-          message = error.response.data;
-        } else {
-          // Try to get first error message from any field
-          const firstKey = Object.keys(error.response.data)[0];
-          if (firstKey) {
-            const val = error.response.data[firstKey];
-            message = Array.isArray(val) ? val[0] : val;
-          }
-        }
+      
+      if (error.code === 'ERR_NETWORK' || error.message === 'Network Error') {
+        message = 'Cannot connect to server. Please check your internet connection or try again later.';
+      } else if (error.response?.data?.detail) {
+        message = error.response.data.detail;
+      } else if (error.response?.data?.non_field_errors) {
+        message = error.response.data.non_field_errors[0];
       }
       
       toast.error(message);
